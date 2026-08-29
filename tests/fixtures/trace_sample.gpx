@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="OpenTrace ML test suite"
+     xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Original synthetic trace</name>
+    <trkseg>
+      <trkpt lat="22.3000" lon="73.1800">
+        <time>2026-01-01T00:00:00Z</time>
+      </trkpt>
+      <trkpt lat="22.3001" lon="73.1801">
+        <time>2026-01-01T00:00:10+00:00</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
