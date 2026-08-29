@@ -15,6 +15,7 @@ The first release provides a small, model-agnostic foundation:
 - learn traffic patterns incrementally with `partial_fit`;
 - score route reliability using damage, congestion, map uncertainty, and distance;
 - export routes and detections as GeoJSON.
+- evaluate detection output and rolling traffic forecasts.
 
 OpenTrace ML does not yet ship a trained detector, routing service, web app, or
 third-party dataset. Those capabilities are staged in the roadmap.
@@ -84,6 +85,25 @@ python examples/rdd_annotations.py /path/to/RDD2022
 python examples/osm_graph.py
 ```
 
+## Try the current stage
+
+Create a GeoJSON road-survey layer from an RDD2022-style annotation:
+
+```bash
+python examples/road_damage_route_demo.py tests/fixtures/rdd_sample.xml
+```
+
+Backtest the live forecaster on public UCI traffic data:
+
+```bash
+pip install -e '.[data]'
+python examples/traffic_backtest.py
+```
+
+The current APIs can also support small GIS dashboards, annotation review tools,
+traffic-monitoring baselines, and experimental route-comparison services. See
+[current-stage use cases](docs/USE_CASES.md) and the [stage-two plan](docs/STAGE_2.md).
+
 ## Test
 
 The core test suite uses only a tiny original XML fixture and does not download
@@ -103,6 +123,8 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 | `forecasting.py` | Incremental traffic-volume forecasting |
 | `routing.py` | Transparent, auditable route scoring |
 | `datasets.py` | Metadata and optional public-data adapters |
+| `protocols.py` | External model adapter contracts |
+| `evaluation.py` | Detection metrics and rolling forecast evaluation |
 
 ## Design principle
 

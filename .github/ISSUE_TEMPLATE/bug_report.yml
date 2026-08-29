@@ -1,0 +1,27 @@
+name: Bug report
+description: Report reproducible incorrect behavior in OpenTrace ML
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Include the smallest reproducible example and complete error output.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: OpenTrace ML and Python versions
+      placeholder: opentrace-ml 0.1.0, Python 3.12
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Dataset or map source
+      description: Do not attach private GPS traces or restricted data.
+

@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a focused library capability or public-data adapter
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: Problem
+      description: What developer workflow or use case is currently blocked?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed interface
+      description: Show a small Python usage example when possible.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Data and licence considerations
+      description: Link authoritative terms for any external dataset or model.
+    validations:
+      required: true
+

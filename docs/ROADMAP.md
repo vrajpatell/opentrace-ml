@@ -10,9 +10,11 @@
 
 ## 0.2 — Reproducible baselines
 
-- Add a detector adapter protocol and an Apache-2.0-compatible reference model.
+- [x] Add a detector adapter protocol and callable reference adapter.
+- [x] Add detection metrics and rolling traffic backtesting.
+- [x] Add runnable current-stage mini-projects.
+- [ ] Add an Apache-2.0-compatible reference detection model.
 - Add train/evaluate commands for an RDD2022 subset.
-- Add MAE, MAPE, and rolling-window backtesting for traffic forecasts.
 - Add small cached OSM extracts for integration tests without hitting public services.
 
 ## 0.3 — Route intelligence
@@ -28,4 +30,3 @@
 - Add a FastAPI reference service.
 - Add a MapLibre example application.
 - Measure end-to-end latency and synchronization error.
-
