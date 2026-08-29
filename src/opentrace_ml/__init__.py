@@ -10,6 +10,7 @@ from .evaluation import (
 )
 from .forecasting import OnlineTrafficForecaster
 from .geo import detections_to_geojson, geolocate_detections, route_to_geojson
+from .gpx import load_gpx_points
 from .models import BoundingBox, Detection, GeoDetection, GeoPoint
 from .protocols import CallableDetector, Detector, RawDetection
 from .routing import RouteSignals, score_route
@@ -30,6 +31,7 @@ __all__ = [
     "detection_metrics",
     "detections_to_geojson",
     "geolocate_detections",
+    "load_gpx_points",
     "regression_metrics",
     "rolling_backtest",
     "route_to_geojson",
