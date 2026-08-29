@@ -108,9 +108,9 @@ def detection_metrics(
         for index, expected in enumerate(ground_truth):
             if index in matched_ground_truth or prediction.label != expected.label:
                 continue
-            if prediction.frame_id is not None or expected.frame_id is not None:
-                if prediction.frame_id != expected.frame_id:
-                    continue
+            has_frame = prediction.frame_id is not None or expected.frame_id is not None
+            if has_frame and prediction.frame_id != expected.frame_id:
+                continue
             iou = bounding_box_iou(prediction.bbox, expected.bbox)
             if iou >= iou_threshold:
                 possible_matches.append((iou, index))
@@ -165,9 +165,9 @@ def rolling_backtest(
         raise ValueError("The frame is too short for the requested initial window and horizon")
 
     folds: list[pd.DataFrame] = []
-    fold_number = 0
     final_split = len(ordered) - horizon
-    for split in range(initial_window, final_split + 1, step):
+    split_points = range(initial_window, final_split + 1, step)
+    for fold_number, split in enumerate(split_points, start=1):
         train = ordered.iloc[:split]
         test = ordered.iloc[split : split + horizon]
         model = forecaster_factory().fit_frame(
@@ -180,7 +180,6 @@ def rolling_backtest(
             periods=len(test),
             frequency=frequency,
         )
-        fold_number += 1
         folds.append(
             pd.DataFrame(
                 {
@@ -192,4 +191,3 @@ def rolling_backtest(
             )
         )
     return pd.concat(folds, ignore_index=True)
-
