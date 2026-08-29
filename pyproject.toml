@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opentrace-ml"
+version = "0.1.0"
+description = "Composable computer-vision, traffic-forecasting, and route-intelligence primitives."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Vraj Patel" }]
+keywords = ["computer-vision", "traffic-forecasting", "geospatial", "routing", "machine-learning"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "scikit-learn>=1.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/vrajpatell/opentrace-ml"
+Repository = "https://github.com/vrajpatell/opentrace-ml"
+Issues = "https://github.com/vrajpatell/opentrace-ml/issues"
+
+[project.optional-dependencies]
+data = ["ucimlrepo>=0.0.7"]
+geo = ["osmnx>=2.0"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

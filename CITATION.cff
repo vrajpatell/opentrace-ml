@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use OpenTrace ML in research or an open-source project, please cite it."
+title: "OpenTrace ML"
+type: software
+authors:
+  - family-names: Patel
+    given-names: Vraj
+repository-code: "https://github.com/vrajpatell/opentrace-ml"
+url: "https://github.com/vrajpatell/opentrace-ml"
+version: 0.1.0
+date-released: 2026-08-29
+license: Apache-2.0
+
