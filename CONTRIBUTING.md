@@ -23,6 +23,9 @@ ruff check .
 - Preserve the separation between vision, forecasting, and mapping backends.
 - Document public APIs and externally visible behavior.
 - Do not commit datasets, private GPS traces, access tokens, or model weights.
+- Never log raw trace coordinates, raw trip IDs, device IDs, or pseudonym keys.
+- Preserve the explicit consent gate for every private trace-ingestion path.
+- Publish only thresholded aggregate geometry after documented human review.
 - Update `DATA_LICENSES.md` when adding a public-data adapter.
 
 ## Dataset contributions
@@ -39,4 +42,3 @@ Every proposed dataset integration must document:
 
 By submitting a contribution to OpenTrace ML, you agree that your contribution
 will be licensed under the Apache License, Version 2.0.
-
