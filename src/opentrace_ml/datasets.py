@@ -1,6 +1,6 @@
 """Public dataset catalog and optional loaders.
 
-Dataset files are intentionally not vendored with the MIT-licensed source code.
+Dataset files are intentionally not vendored with the Apache-2.0-licensed source code.
 Each source keeps its own licence and attribution requirements.
 """
 
@@ -101,4 +101,3 @@ def fetch_osm_drive_graph(place: str, *, simplify: bool = True):
     except ImportError as exc:
         raise ImportError("Install the geo extra: pip install 'opentrace-ml[geo]'") from exc
     return ox.graph.graph_from_place(place, network_type="drive", simplify=simplify)
-

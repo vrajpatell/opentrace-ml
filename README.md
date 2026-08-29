@@ -106,10 +106,6 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 
 ## Design principle
 
-Detectors, forecasting models, and routing engines evolve independently. The
-shared `Detection`, `GeoPoint`, and GeoJSON contracts let developers replace one
-component without rewriting the rest of the pipeline.
-
 Detectors, forecasting models, and routing engines should evolve independently.
 The shared contracts let developers replace one component without rewriting the
 rest of the pipeline. See [the architecture notes](docs/ARCHITECTURE.md).
