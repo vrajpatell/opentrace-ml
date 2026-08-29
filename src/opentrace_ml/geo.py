@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from itertools import pairwise
 
 from .models import Detection, GeoDetection, GeoPoint
 
@@ -23,7 +24,7 @@ def interpolate_position(points: Sequence[GeoPoint], timestamp_seconds: float) -
     ordered = list(points)
     if any(
         current.timestamp_seconds > following.timestamp_seconds
-        for current, following in zip(ordered, ordered[1:])
+        for current, following in pairwise(ordered)
     ):
         raise ValueError("GPS points must be ordered by timestamp")
 
@@ -34,7 +35,7 @@ def interpolate_position(points: Sequence[GeoPoint], timestamp_seconds: float) -
         point = ordered[-1]
         return GeoPoint(point.latitude, point.longitude, timestamp_seconds)
 
-    for left, right in zip(ordered, ordered[1:]):
+    for left, right in pairwise(ordered):
         if left.timestamp_seconds <= timestamp_seconds <= right.timestamp_seconds:
             duration = right.timestamp_seconds - left.timestamp_seconds
             if duration == 0:
@@ -75,7 +76,7 @@ def haversine_distance_m(left: GeoPoint, right: GeoPoint) -> float:
 def route_distance_m(points: Sequence[GeoPoint]) -> float:
     """Return total great-circle distance for an ordered route."""
 
-    return sum(haversine_distance_m(left, right) for left, right in zip(points, points[1:]))
+    return sum(haversine_distance_m(left, right) for left, right in pairwise(points))
 
 
 def route_to_geojson(points: Sequence[GeoPoint], **properties: object) -> dict[str, object]:
@@ -119,4 +120,3 @@ def detections_to_geojson(detections: Sequence[GeoDetection]) -> dict[str, objec
             }
         )
     return {"type": "FeatureCollection", "features": features}
-

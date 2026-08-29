@@ -81,7 +81,7 @@ class OnlineTrafficForecaster:
         *,
         timestamp_column: str = "date_time",
         target_column: str = "traffic_volume",
-    ) -> "OnlineTrafficForecaster":
+    ) -> OnlineTrafficForecaster:
         """Fit incrementally from a time-ordered pandas DataFrame."""
 
         required = {timestamp_column, target_column}
@@ -128,4 +128,3 @@ class OnlineTrafficForecaster:
             predictions.append(value)
             history.append(value)
         return pd.DataFrame({"timestamp": timestamps, "predicted_traffic_volume": predictions})
-

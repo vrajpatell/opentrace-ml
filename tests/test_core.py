@@ -11,7 +11,6 @@ from opentrace_ml.models import GeoPoint
 from opentrace_ml.routing import RouteSignals, score_route
 from opentrace_ml.vision import parse_pascal_voc
 
-
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
