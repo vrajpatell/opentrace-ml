@@ -32,6 +32,21 @@ class TracePreparationTests(unittest.TestCase):
         self.assertNotEqual(first, rotated)
         self.assertNotIn("trip-1", first)
 
+    def test_rejects_invalid_pseudonym_inputs(self) -> None:
+        for trip_id, secret_key in [("", SECRET), ("trip-1", "too-short")]:
+            with self.subTest(trip_id=trip_id), self.assertRaises(ValueError):
+                pseudonymize_trip_id(trip_id, secret_key)
+
+    def test_rejects_invalid_cleaning_limits(self) -> None:
+        cases = [
+            {"max_speed_m_s": 0},
+            {"max_speed_m_s": float("nan")},
+            {"min_points": 1},
+        ]
+        for values in cases:
+            with self.subTest(values=values), self.assertRaises(ValueError):
+                TraceCleaningConfig(**values)
+
     def test_removes_duplicates_and_speed_outliers(self) -> None:
         points = [
             GeoPoint(22.3000, 73.1800, 100),
@@ -58,6 +73,20 @@ class TracePreparationTests(unittest.TestCase):
         cases = [
             [GeoPoint(1, 2, 10), GeoPoint(1, 2, 5)],
             [GeoPoint(1, 2, 0), GeoPoint(1.1, 2.1, 0)],
+        ]
+        for points in cases:
+            with self.subTest(points=points), self.assertRaises(ValueError):
+                prepare_trace(
+                    points,
+                    trip_id="trip-1",
+                    secret_key=SECRET,
+                    consent_granted=True,
+                )
+
+    def test_rejects_traces_that_are_too_short_after_cleaning(self) -> None:
+        cases = [
+            [GeoPoint(1, 2, 0)],
+            [GeoPoint(1, 2, 0), GeoPoint(2, 3, 1)],
         ]
         for points in cases:
             with self.subTest(points=points), self.assertRaises(ValueError):
