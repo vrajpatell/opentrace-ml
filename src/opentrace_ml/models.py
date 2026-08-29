@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 
@@ -15,6 +16,10 @@ class BoundingBox:
     ymax: float
 
     def __post_init__(self) -> None:
+        if not all(
+            math.isfinite(value) for value in (self.xmin, self.ymin, self.xmax, self.ymax)
+        ):
+            raise ValueError("Bounding box coordinates must be finite")
         if self.xmax < self.xmin or self.ymax < self.ymin:
             raise ValueError("Bounding box maximums must be greater than or equal to minimums")
 
@@ -47,6 +52,11 @@ class GeoPoint:
     timestamp_seconds: float
 
     def __post_init__(self) -> None:
+        if not all(
+            math.isfinite(value)
+            for value in (self.latitude, self.longitude, self.timestamp_seconds)
+        ):
+            raise ValueError("GPS coordinates and timestamp must be finite")
         if not -90.0 <= self.latitude <= 90.0:
             raise ValueError("Latitude must be between -90 and 90")
         if not -180.0 <= self.longitude <= 180.0:
@@ -62,4 +72,3 @@ class GeoDetection:
     detection: Detection
     latitude: float
     longitude: float
-

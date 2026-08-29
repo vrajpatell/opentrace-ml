@@ -17,8 +17,11 @@ Stage two turns the initial data contracts into measurable ML components.
 2. Add train/evaluate commands for a small documented RDD2022 subset.
 3. Add per-class detection metrics and mean average precision.
 4. Cache a tiny OSM extract for offline integration testing.
-5. Add GPX parsing and timestamp normalization.
+5. [x] Add GPX parsing and timestamp normalization.
+
+Trace ingestion now continues in [stage three](STAGE_3.md), where consent,
+pseudonymization, and deterministic cleaning form the privacy boundary before
+map matching.
 
 Each slice should have a small public-data fixture, deterministic tests, CLI
 documentation, and licence notes before it is merged.
-

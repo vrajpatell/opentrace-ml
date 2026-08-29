@@ -16,6 +16,7 @@ The first release provides a small, model-agnostic foundation:
 - score route reliability using damage, congestion, map uncertainty, and distance;
 - export routes and detections as GeoJSON.
 - evaluate detection output and rolling traffic forecasts.
+- prepare consented GPS traces with pseudonymized IDs and deterministic cleaning.
 
 OpenTrace ML does not yet ship a trained detector, routing service, web app, or
 third-party dataset. Those capabilities are staged in the roadmap.
@@ -72,6 +73,25 @@ located = geolocate_detections(detections, trace)
 geojson = detections_to_geojson(located)
 ```
 
+## Prepare a private GPX trace
+
+The trace-preparation boundary requires explicit consent, replaces the raw trip
+identifier with an HMAC pseudonym, removes exact duplicate samples and implausible
+speed jumps, and normalizes timestamps. Never use a hardware device ID as `trip_id`.
+
+```python
+import os
+from opentrace_ml import load_gpx_points, prepare_trace
+
+points = load_gpx_points("trip.gpx")
+trace = prepare_trace(points, trip_id="export-123",
+                      secret_key=os.environ["OPENTRACE_PSEUDONYM_KEY"], consent_granted=True)
+```
+
+`trace.points` still contains sensitive coordinates. Keep it inside the private
+processing pipeline and publish only reviewed, aggregated outputs. See
+[stage three](docs/STAGE_3.md) for the privacy and threat-model boundaries.
+
 ## Public-data examples
 
 ```bash
@@ -83,6 +103,10 @@ python examples/rdd_annotations.py /path/to/RDD2022
 
 # Downloads an OSM driving graph and prints its size.
 python examples/osm_graph.py
+
+# Prints only a pseudonymous trip ID and aggregate cleaning counts.
+OPENTRACE_PSEUDONYM_KEY='replace-with-a-secret' \
+  python examples/prepare_gpx_trace.py trip.gpx --trip-id export-123 --consent
 ```
 
 ## Try the current stage
@@ -120,6 +144,8 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 | `models.py` | Stable detection and GPS data contracts |
 | `vision.py` | Model-agnostic annotation parsing |
 | `geo.py` | GPS interpolation, distances, and GeoJSON |
+| `gpx.py` | Timestamped GPX loading and normalization |
+| `trace.py` | Consent, pseudonymization, and trace cleaning |
 | `forecasting.py` | Incremental traffic-volume forecasting |
 | `routing.py` | Transparent, auditable route scoring |
 | `datasets.py` | Metadata and optional public-data adapters |

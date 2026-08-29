@@ -16,13 +16,25 @@
 - [ ] Add an Apache-2.0-compatible reference detection model.
 - Add train/evaluate commands for an RDD2022 subset.
 - Add small cached OSM extracts for integration tests without hitting public services.
+- [x] Add GPX parsing and timestamp normalization.
+
+## 0.2.1 — Privacy-safe trace preparation
+
+- [x] Require explicit consent at the downstream trace-preparation boundary.
+- [x] Replace raw trip identifiers with secret-keyed HMAC pseudonyms.
+- [x] Remove duplicate samples and implausible speed jumps deterministically.
+- [x] Emit aggregate cleaning counts without logging coordinates.
+- [ ] Segment traces around long recording gaps.
+- [ ] Define key-rotation and retention guidance for deployments.
 
 ## 0.3 — Route intelligence
 
+- Define a model-independent map-matcher protocol.
 - Connect forecasts to road-network edges.
 - Map-match GPS traces with Valhalla.
 - Cluster repeated unmatched traces as candidate missing roads.
-- Require human review before exporting road-layer changes.
+- Require a minimum contributing-trip threshold and human review before
+  exporting aggregated road-layer changes.
 
 ## 0.4 — Streaming and web integration
 
