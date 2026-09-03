@@ -11,6 +11,14 @@ from .evaluation import (
 from .forecasting import OnlineTrafficForecaster
 from .geo import detections_to_geojson, geolocate_detections, route_to_geojson
 from .gpx import load_gpx_points
+from .map_matching import (
+    CallableMapMatcher,
+    MapMatchObservation,
+    MapMatchResult,
+    MapMatchSegment,
+    MapMatcher,
+    RawMapMatch,
+)
 from .models import BoundingBox, Detection, GeoDetection, GeoPoint
 from .protocols import CallableDetector, Detector, RawDetection
 from .routing import RouteSignals, score_route
@@ -25,14 +33,20 @@ from .trace import (
 __all__ = [
     "BoundingBox",
     "CallableDetector",
+    "CallableMapMatcher",
     "Detection",
     "DetectionMetrics",
     "Detector",
     "GeoDetection",
     "GeoPoint",
+    "MapMatchObservation",
+    "MapMatchResult",
+    "MapMatchSegment",
+    "MapMatcher",
     "OnlineTrafficForecaster",
     "PreparedTrace",
     "RawDetection",
+    "RawMapMatch",
     "RegressionMetrics",
     "RouteSignals",
     "TraceCleaningConfig",
