@@ -33,10 +33,13 @@ at the same timestamp are rejected. At least two points must remain.
 The algorithm preserves input order. It does not smooth coordinates, split long
 recording gaps, map-match points, or infer missing roads.
 
+The model-independent map-matching boundary is now defined in
+[stage four](STAGE_4.md). Stage three remains responsible for preparing the
+sensitive input before any adapter runs.
+
 ## Next implementation slices
 
 1. Split traces around configurable recording gaps.
-2. Define a map-matcher protocol and shared match-result contracts.
-3. Integrate the offline OSM fixture from issue #3.
-4. Cluster unmatched segments only after a minimum trip threshold.
-5. Export reviewed aggregate centerlines without raw-trace provenance.
+2. Integrate the offline OSM fixture from issue #3.
+3. Cluster unmatched segments only after a minimum trip threshold.
+4. Export reviewed aggregate centerlines without raw-trace provenance.
