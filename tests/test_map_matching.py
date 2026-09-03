@@ -3,8 +3,8 @@ import unittest
 from opentrace_ml import (
     CallableMapMatcher,
     GeoPoint,
-    MapMatchResult,
     MapMatcher,
+    MapMatchResult,
     RawMapMatch,
     prepare_trace,
 )
