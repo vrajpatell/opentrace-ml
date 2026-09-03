@@ -29,7 +29,7 @@
 
 ## 0.3 — Route intelligence
 
-- Define a model-independent map-matcher protocol.
+- [x] Define a model-independent map-matcher protocol and offline callable adapter.
 - Connect forecasts to road-network edges.
 - Map-match GPS traces with Valhalla.
 - Cluster repeated unmatched traces as candidate missing roads.
