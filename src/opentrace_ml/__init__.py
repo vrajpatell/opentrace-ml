@@ -5,6 +5,7 @@ from .evaluation import (
     RegressionMetrics,
     bounding_box_iou,
     detection_metrics,
+    per_class_detection_metrics,
     regression_metrics,
     rolling_backtest,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "TraceCleaningReport",
     "bounding_box_iou",
     "detection_metrics",
+    "per_class_detection_metrics",
     "detections_to_geojson",
     "geolocate_detections",
     "load_gpx_points",

@@ -136,6 +136,37 @@ def detection_metrics(
     )
 
 
+def per_class_detection_metrics(
+    ground_truth: Sequence[Detection],
+    predictions: Sequence[Detection],
+    *,
+    iou_threshold: float = 0.5,
+    confidence_threshold: float = 0.0,
+) -> dict[str, DetectionMetrics]:
+    """Calculate per-class detection metrics (precision, recall, F1, TP, FP, FN).
+
+    Evaluates predictions and ground truth grouped by class label, returning a
+    mapping from class label to its corresponding DetectionMetrics.
+    Classes present only in predictions have TP=0, recall=0.0, and FP matching candidate count.
+    Classes present only in ground truth have TP=0, precision=0.0, and FN matching expected count.
+    """
+    labels = sorted(
+        {item.label for item in ground_truth}
+        | {item.label for item in predictions if item.confidence >= confidence_threshold}
+    )
+    result: dict[str, DetectionMetrics] = {}
+    for label in labels:
+        gt_class = [item for item in ground_truth if item.label == label]
+        pred_class = [item for item in predictions if item.label == label]
+        result[label] = detection_metrics(
+            gt_class,
+            pred_class,
+            iou_threshold=iou_threshold,
+            confidence_threshold=confidence_threshold,
+        )
+    return result
+
+
 def rolling_backtest(
     frame: pd.DataFrame,
     *,
