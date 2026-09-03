@@ -17,6 +17,7 @@ The first release provides a small, model-agnostic foundation:
 - export routes and detections as GeoJSON.
 - evaluate detection output and rolling traffic forecasts.
 - prepare consented GPS traces with pseudonymized IDs and deterministic cleaning.
+- validate model-independent map-match output without a routing-engine dependency.
 
 OpenTrace ML does not yet ship a trained detector, routing service, web app, or
 third-party dataset. Those capabilities are staged in the roadmap.
@@ -42,6 +43,9 @@ flowchart LR
 Dataset files are downloaded by the user and remain under their original
 licences. See [DATA_LICENSES.md](DATA_LICENSES.md) before downloading,
 redistributing, or publishing derived data.
+
+RDD2022-derived detections are application-layer signals, not an authorized
+source for editing OpenStreetMap. OpenTrace does not upload them to OSM.
 
 ## Install
 
@@ -107,7 +111,14 @@ python examples/osm_graph.py
 # Prints only a pseudonymous trip ID and aggregate cleaning counts.
 OPENTRACE_PSEUDONYM_KEY='replace-with-a-secret' \
   python examples/prepare_gpx_trace.py trip.gpx --trip-id export-123 --consent
+
+# Exercises the map-matcher contract locally without an OSM service.
+OPENTRACE_PSEUDONYM_KEY='replace-with-a-secret' \
+  python examples/map_match_fixture.py
 ```
+
+See [stage four](docs/STAGE_4.md) for the adapter, privacy, and OSM-data
+boundaries.
 
 ## Try the current stage
 
@@ -146,6 +157,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 | `geo.py` | GPS interpolation, distances, and GeoJSON |
 | `gpx.py` | Timestamped GPX loading and normalization |
 | `trace.py` | Consent, pseudonymization, and trace cleaning |
+| `map_matching.py` | Engine-independent matched/unmatched trace contracts |
 | `forecasting.py` | Incremental traffic-volume forecasting |
 | `routing.py` | Transparent, auditable route scoring |
 | `datasets.py` | Metadata and optional public-data adapters |
