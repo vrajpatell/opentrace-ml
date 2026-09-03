@@ -32,6 +32,21 @@ the library. Publicly used or distributed derivative databases may carry ODbL
 share-alike obligations. Consult the OSM Foundation guidance before combining
 OSM-derived geometry into a new public road database.
 
+## Application output versus OpenStreetMap edits
+
+RDD2022-derived detections are used only as application-layer signals. OpenTrace
+ML does not treat those detections as an authorized source for editing
+OpenStreetMap and does not upload them automatically. CC BY 4.0 attribution may
+not by itself satisfy the requirements for importing derived data into OSM.
+
+Any future OSM contribution workflow must use a separately authorized source,
+follow the OSM import and licensing guidance, obtain any required permission or
+waiver, and require human review. Until that workflow exists, inferred road
+damage and candidate roads must remain in a separate OpenTrace layer.
+
+See the OSM Foundation's guidance on
+[CC BY data](https://blog.openstreetmap.org/2017/03/17/use-of-cc-by-data/).
+
 ## Model weights
 
 OpenTrace ML does not currently distribute model weights. Future weights must
