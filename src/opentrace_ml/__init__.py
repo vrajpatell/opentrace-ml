@@ -13,10 +13,10 @@ from .geo import detections_to_geojson, geolocate_detections, route_to_geojson
 from .gpx import load_gpx_points
 from .map_matching import (
     CallableMapMatcher,
+    MapMatcher,
     MapMatchObservation,
     MapMatchResult,
     MapMatchSegment,
-    MapMatcher,
     RawMapMatch,
 )
 from .models import BoundingBox, Detection, GeoDetection, GeoPoint
