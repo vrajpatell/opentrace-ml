@@ -46,6 +46,7 @@ Example using Python:
 
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
+```
 
 The generated value is an example deployment secret. Never commit a real
 pseudonym key to the repository, place it in configuration examples, or expose
@@ -88,19 +89,33 @@ If a pseudonym key may have been exposed:
 3. identify affected data, logs, backups, and reports;
 4. revoke access to the compromised secret where applicable;
 5. retire and delete the old key when retention requirements permit;
-6. review whether affected pseudonymized records require deletion or regeneration.
+6. review whether affected pseudonymized records require deletion or
+   regeneration.
+
+Rotating the key protects newly generated pseudonyms. It does not retroactively
+remove sensitive data that was already exposed.
 
 ## Trace-data retention
 
-Deployments must define explicit retention periods.
+Deployments must define explicit retention periods appropriate to their purpose
+and legal requirements.
 
-- **Raw GPX:** retain only for the minimum period needed for authorized processing.
-- **Prepared traces and `PreparedTrace.points`:** treat as sensitive location data.
-- **Reports and exports:** apply an explicit retention period.
+The following data classes should be considered separately:
+
+- **Raw GPX:** retain only for the minimum period needed for authorized
+  processing, then delete.
+- **Prepared traces and `PreparedTrace.points`:** treat as sensitive location
+  data and delete when detailed trace processing is no longer required.
+- **Reports and exports:** review for sensitive or linkable information and
+  apply an explicit retention period.
 - **Thresholded aggregates:** may be retained longer only after review confirms
   they contain no raw traces or directly identifying information.
 
-Backups and temporary files must follow compatible deletion schedules.
+Backups and temporary files must follow compatible deletion schedules so that
+deleted sensitive traces are not unintentionally retained indefinitely.
+
+Deletion should remove the data from active storage and allow backup copies to
+expire according to the documented backup-retention schedule.
 
 ## Logging requirements
 
@@ -111,6 +126,8 @@ Logs must never contain:
 - raw private trace coordinates;
 - unnecessary trip identifiers.
 
+Operational logging should use the minimum metadata necessary for diagnostics.
+
 ## Deployment checklist
 
 Before processing private traces, confirm that:
@@ -118,7 +135,9 @@ Before processing private traces, confirm that:
 - [ ] consent and privacy checks occur before trace processing;
 - [ ] only trip-scoped identifiers enter OpenTrace;
 - [ ] no raw device identifiers are stored or logged;
+- [ ] the pseudonym key was generated with a cryptographically secure source;
 - [ ] the pseudonym key is stored outside source control and logs;
+- [ ] key access is restricted;
 - [ ] a key-rotation schedule is documented;
 - [ ] compromise-response procedures are documented;
 - [ ] old-key retirement and deletion behavior are documented;
