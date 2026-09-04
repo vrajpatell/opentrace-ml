@@ -28,6 +28,8 @@ routing components independent.
   downstream pipeline.
 - Raw device IDs must never enter OpenTrace. Deployments provide a trip-scoped
   identifier and retain the HMAC secret outside code and logs.
+- Deployment key rotation, compromise response, and trace-retention guidance is
+  documented in [Privacy and key management](PRIVACY_AND_KEY_MANAGEMENT.md).
 - `PreparedTrace.points` remains sensitive. Community layers must expose only
   thresholded, aggregated centerlines after human review, never raw traces.
 - RDD2022-derived detections remain application-layer output and are not an

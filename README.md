@@ -123,6 +123,10 @@ pipeline and publish only reviewed, aggregated outputs. Read the
 [privacy-safe trace stage](docs/STAGE_3.md) and
 [map-matching stage](docs/STAGE_4.md) before integrating real traces.
 
+For deployment guidance on pseudonym key rotation, compromise response, and
+trace-data retention, see
+[Privacy and key management](docs/PRIVACY_AND_KEY_MANAGEMENT.md).
+
 ## Public-data examples
 
 These examples require the corresponding optional dependency or a user-provided
