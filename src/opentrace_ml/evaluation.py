@@ -40,6 +40,31 @@ class DetectionMetrics:
         return asdict(self)
 
 
+@dataclass(frozen=True, slots=True)
+class PerClassDetectionMetrics:
+    """Deterministic per-label detection metrics at one evaluation threshold.
+
+    ``metrics_by_label`` includes labels present in ground truth and labels with
+    at least one prediction at or above the configured confidence threshold.
+    Call :meth:`as_dict` to create a JSON-serializable report.
+    """
+
+    metrics_by_label: dict[str, DetectionMetrics]
+
+    def __getitem__(self, label: str) -> DetectionMetrics:
+        """Return metrics for one detection label."""
+
+        return self.metrics_by_label[label]
+
+    def as_dict(self) -> dict[str, dict[str, float | int]]:
+        """Return an ordered, JSON-serializable per-label report."""
+
+        return {
+            label: metrics.as_dict()
+            for label, metrics in sorted(self.metrics_by_label.items())
+        }
+
+
 def regression_metrics(
     actual: Sequence[float],
     predicted: Sequence[float],
@@ -133,6 +158,42 @@ def detection_metrics(
         true_positives=true_positives,
         false_positives=false_positives,
         false_negatives=false_negatives,
+    )
+
+
+def per_class_detection_metrics(
+    ground_truth: Sequence[Detection],
+    predictions: Sequence[Detection],
+    *,
+    iou_threshold: float = 0.5,
+    confidence_threshold: float = 0.0,
+) -> PerClassDetectionMetrics:
+    """Report label-specific metrics using the same frame- and IoU-aware matching.
+
+    Predictions below ``confidence_threshold`` do not introduce a prediction-only
+    label. Labels present in ground truth are always reported, including when the
+    model makes no prediction for them.
+    """
+
+    if not 0 < iou_threshold <= 1:
+        raise ValueError("iou_threshold must be between 0 and 1")
+    if not 0 <= confidence_threshold <= 1:
+        raise ValueError("confidence_threshold must be between 0 and 1")
+
+    labels = sorted(
+        {item.label for item in ground_truth}
+        | {item.label for item in predictions if item.confidence >= confidence_threshold}
+    )
+    return PerClassDetectionMetrics(
+        metrics_by_label={
+            label: detection_metrics(
+                [item for item in ground_truth if item.label == label],
+                [item for item in predictions if item.label == label],
+                iou_threshold=iou_threshold,
+                confidence_threshold=confidence_threshold,
+            )
+            for label in labels
+        }
     )
 
 
