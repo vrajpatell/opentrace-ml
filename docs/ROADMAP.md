@@ -12,6 +12,7 @@
 
 - [x] Add a detector adapter protocol and callable reference adapter.
 - [x] Add detection metrics and rolling traffic backtesting.
+- [x] Add per-class detection metrics at a configurable IoU threshold.
 - [x] Add runnable current-stage mini-projects.
 - [ ] Add an Apache-2.0-compatible reference detection model.
 - Add train/evaluate commands for an RDD2022 subset.
@@ -25,7 +26,7 @@
 - [x] Remove duplicate samples and implausible speed jumps deterministically.
 - [x] Emit aggregate cleaning counts without logging coordinates.
 - [ ] Segment traces around long recording gaps.
-- [ ] Define key-rotation and retention guidance for deployments.
+- [x] Define key-rotation and retention guidance for deployments.
 
 ## 0.3 — Route intelligence
 
