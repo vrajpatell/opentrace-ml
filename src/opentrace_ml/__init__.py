@@ -2,9 +2,11 @@
 
 from .evaluation import (
     DetectionMetrics,
+    PerClassDetectionMetrics,
     RegressionMetrics,
     bounding_box_iou,
     detection_metrics,
+    per_class_detection_metrics,
     regression_metrics,
     rolling_backtest,
 )
@@ -44,6 +46,7 @@ __all__ = [
     "MapMatchSegment",
     "MapMatcher",
     "OnlineTrafficForecaster",
+    "PerClassDetectionMetrics",
     "PreparedTrace",
     "RawDetection",
     "RawMapMatch",
@@ -58,6 +61,7 @@ __all__ = [
     "load_gpx_points",
     "prepare_trace",
     "pseudonymize_trip_id",
+    "per_class_detection_metrics",
     "regression_metrics",
     "rolling_backtest",
     "route_to_geojson",
