@@ -86,13 +86,13 @@ python -m pytest -q
 
 Evaluate each road-damage label separately while preserving frame and IoU matching:
 
-\`\`\`python
+```python
 from opentrace_ml import per_class_detection_metrics
 
 report = per_class_detection_metrics(ground_truth, predictions, iou_threshold=0.5)
 pothole_f1 = report["pothole"].f1
 json_ready = report.as_dict()
-\`\`\`
+```
 
 Labels that appear only in predictions or only in ground truth are included in the
 report, making false positives and missed damage classes visible.
