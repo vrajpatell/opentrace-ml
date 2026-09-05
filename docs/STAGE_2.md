@@ -7,6 +7,7 @@ Stage two turns the initial data contracts into measurable ML components.
 - `Detector` protocol for model-independent CV integrations.
 - `CallableDetector` reference adapter.
 - bounding-box IoU and single-threshold detection metrics.
+- per-class, frame- and IoU-aware road-damage evaluation reports.
 - MAE, RMSE, and zero-safe MAPE metrics.
 - leakage-resistant rolling traffic backtesting.
 - runnable road-damage GeoJSON and traffic-backtest examples.
@@ -15,7 +16,7 @@ Stage two turns the initial data contracts into measurable ML components.
 
 1. Add an MMDetection/RTMDet adapter without making it a core dependency.
 2. Add train/evaluate commands for a small documented RDD2022 subset.
-3. Add per-class detection metrics and mean average precision.
+3. Add mean average precision over documented IoU thresholds.
 4. Cache a tiny OSM extract for offline integration testing.
 5. [x] Add GPX parsing and timestamp normalization.
 
