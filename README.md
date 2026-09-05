@@ -19,7 +19,7 @@ the stack.
 | Area | Available capability |
 |---|---|
 | Computer vision | Parse RDD2022-style Pascal VOC annotations and adapt callable detectors |
-| Evaluation | Calculate detection metrics and rolling traffic-forecast backtests |
+| Evaluation | Calculate per-class detection metrics and rolling traffic-forecast backtests |
 | Forecasting | Learn traffic-volume patterns incrementally with `partial_fit` |
 | Geospatial | Interpolate detections onto GPS traces and export GeoJSON |
 | Private traces | Enforce consent, pseudonymize trip IDs, and clean GPX samples |
@@ -81,6 +81,21 @@ OPENTRACE_PSEUDONYM_KEY='replace-with-a-secret' \
 # Run the complete test suite.
 python -m pytest -q
 ```
+
+## Per-class detection reports
+
+Evaluate each road-damage label separately while preserving frame and IoU matching:
+
+\`\`\`python
+from opentrace_ml import per_class_detection_metrics
+
+report = per_class_detection_metrics(ground_truth, predictions, iou_threshold=0.5)
+pothole_f1 = report["pothole"].f1
+json_ready = report.as_dict()
+\`\`\`
+
+Labels that appear only in predictions or only in ground truth are included in the
+report, making false positives and missed damage classes visible.
 
 ## Python quick start
 
@@ -157,7 +172,6 @@ New contributors can start with one bounded issue:
 | Detector integrations | [#4 — Add an optional MMDetection/RTMDet adapter](https://github.com/vrajpatell/opentrace-ml/issues/4) |
 | GPS processing | [#8 — Split traces around long recording gaps](https://github.com/vrajpatell/opentrace-ml/issues/8) |
 | Privacy and aggregation | [#10 — Add a minimum-contributor gate](https://github.com/vrajpatell/opentrace-ml/issues/10) |
-| Security documentation | [#11 — Document key rotation and retention](https://github.com/vrajpatell/opentrace-ml/issues/11) |
 
 If you are unsure where to begin, introduce yourself in
 [GitHub Discussions](https://github.com/vrajpatell/opentrace-ml/discussions) with
