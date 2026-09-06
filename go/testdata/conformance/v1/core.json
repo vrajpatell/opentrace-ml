@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "pseudonym": {
+    "trip_id": "fixture-trip",
+    "secret_key": "0123456789abcdef",
+    "expected": "trip_fcf616a3740d35ca53bed4a0555b0041737a62ba129ffb67c385c1a65aba6cf0"
+  },
+  "interpolation": {
+    "points": [
+      {"latitude": 22.3, "longitude": 73.18, "timestamp_seconds": 0},
+      {"latitude": 22.301, "longitude": 73.182, "timestamp_seconds": 10}
+    ],
+    "timestamp_seconds": 2.5,
+    "expected": {"latitude": 22.30025, "longitude": 73.1805, "timestamp_seconds": 2.5}
+  },
+  "trace_preparation": {
+    "trip_id": "fixture-trip",
+    "secret_key": "0123456789abcdef",
+    "points": [
+      {"latitude": 22.3, "longitude": 73.18, "timestamp_seconds": 100},
+      {"latitude": 22.3, "longitude": 73.18, "timestamp_seconds": 100},
+      {"latitude": 23.3, "longitude": 74.18, "timestamp_seconds": 101},
+      {"latitude": 22.3001, "longitude": 73.1801, "timestamp_seconds": 110}
+    ],
+    "expected_points": [
+      {"latitude": 22.3, "longitude": 73.18, "timestamp_seconds": 0},
+      {"latitude": 22.3001, "longitude": 73.1801, "timestamp_seconds": 10}
+    ],
+    "expected_report": {
+      "input_points": 4,
+      "output_points": 2,
+      "duplicate_points_removed": 1,
+      "speed_outliers_removed": 1
+    }
+  },
+  "route_score": {
+    "signals": {
+      "route_id": "route-a",
+      "distance_m": 1200,
+      "shortest_distance_m": 1000,
+      "potholes": 2,
+      "other_hazards": 1,
+      "traffic_ratio": 0.4,
+      "unmatched_ratio": 0.25
+    },
+    "expected": {
+      "route_id": "route-a",
+      "reliability_score": 56,
+      "penalties": {"damage": 17, "traffic": 12, "map_uncertainty": 5, "detour": 10}
+    }
+  }
+}
