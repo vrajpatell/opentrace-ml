@@ -17,6 +17,19 @@ Run formatting and static checks before opening a pull request:
 ruff check .
 ```
 
+For Go changes, use Go 1.26 or newer and run:
+
+```bash
+cd go
+gofmt -w .
+go vet ./...
+go test -race ./...
+go test -run '^$' -bench . -benchmem ./...
+```
+
+Changes to shared behavior must update `spec/v1/` when the portable contract
+changes and add a case to `go/testdata/conformance/v1/` that passes in both languages.
+
 ## Pull requests
 
 - Keep changes focused and include tests for new behavior.
@@ -27,6 +40,10 @@ ruff check .
 - Preserve the explicit consent gate for every private trace-ingestion path.
 - Publish only thresholded aggregate geometry after documented human review.
 - Update `DATA_LICENSES.md` when adding a public-data adapter.
+- Preserve the documented complexity bound for every Go hot-path operation;
+  include benchmark comparisons for performance-sensitive changes.
+- Keep the Go core standard-library-only. Propose optional dependencies in a
+  separate adapter package with measurements and licence analysis.
 
 ## Dataset contributions
 

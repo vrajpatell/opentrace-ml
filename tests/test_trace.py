@@ -83,6 +83,22 @@ class TracePreparationTests(unittest.TestCase):
                     consent_granted=True,
                 )
 
+    def test_rejects_conflict_hidden_behind_removed_speed_outlier(self) -> None:
+        points = [
+            GeoPoint(22.3, 73.18, 0),
+            GeoPoint(23.3, 74.18, 1),
+            GeoPoint(22.30001, 73.18001, 1),
+            GeoPoint(22.3001, 73.1801, 10),
+        ]
+
+        with self.assertRaisesRegex(ValueError, "same timestamp"):
+            prepare_trace(
+                points,
+                trip_id="trip-1",
+                secret_key=SECRET,
+                consent_granted=True,
+            )
+
     def test_rejects_traces_that_are_too_short_after_cleaning(self) -> None:
         cases = [
             [GeoPoint(1, 2, 0)],

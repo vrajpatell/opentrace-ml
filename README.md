@@ -3,9 +3,10 @@
 [![CI](https://github.com/vrajpatell/opentrace-ml/actions/workflows/ci.yml/badge.svg)](https://github.com/vrajpatell/opentrace-ml/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Go](https://img.shields.io/badge/go-1.26%2B-00ADD8.svg)](go/go.mod)
 [![GitHub Discussions](https://img.shields.io/badge/discussions-join-8250df)](https://github.com/vrajpatell/opentrace-ml/discussions)
 
-OpenTrace ML is a pre-alpha Python library for building road-intelligence
+OpenTrace ML is a pre-alpha Python and Go project for building road-intelligence
 applications from computer-vision detections, incremental traffic forecasts, and
 privacy-aware map signals.
 
@@ -25,6 +26,7 @@ the stack.
 | Private traces | Enforce consent, pseudonymize trip IDs, and clean GPX samples |
 | Map matching | Validate ordered matched and unmatched observations through an engine-independent contract |
 | Routing | Score route reliability from damage, congestion, map uncertainty, and distance |
+| Go execution core | Run trace, geospatial, routing, map-matching, GPX, GeoJSON, and metric operations without Python or CGo |
 
 OpenTrace ML does **not** yet ship a trained detector, live API, routing service,
 web application, third-party dataset, or production map-matcher integration.
@@ -65,6 +67,16 @@ Install optional public-data and OpenStreetMap integrations only when needed:
 pip install -e '.[data,geo]'
 ```
 
+The native Go module supports Go 1.26 and 1.27:
+
+```bash
+go get github.com/vrajpatell/opentrace-ml/go
+```
+
+See the [Go quick start](go/README.md) and
+[performance contracts](docs/GO_PERFORMANCE.md). Python remains the training and
+data-science surface; Go is the dependency-light execution surface.
+
 ## Five-minute offline demo
 
 The repository fixtures are original, tiny, and require no dataset download or
@@ -80,6 +92,9 @@ OPENTRACE_PSEUDONYM_KEY='replace-with-a-secret' \
 
 # Run the complete test suite.
 python -m pytest -q
+
+# Run the native Go core, race tests, and example.
+(cd go && go test -race ./... && go run ./examples/basic)
 ```
 
 ## Per-class detection reports
@@ -168,7 +183,7 @@ New contributors can start with one bounded issue:
 | Interest | Suggested issue |
 |---|---|
 | OpenStreetMap and routing | [#3 — Add a tiny offline OSM integration fixture](https://github.com/vrajpatell/opentrace-ml/issues/3) |
-| Computer-vision evaluation | [#2 — Add per-class road-damage metrics](https://github.com/vrajpatell/opentrace-ml/issues/2) |
+| Go performance | Extend [benchmarks and cross-language conformance tests](docs/GO_PERFORMANCE.md) |
 | Detector integrations | [#4 — Add an optional MMDetection/RTMDet adapter](https://github.com/vrajpatell/opentrace-ml/issues/4) |
 | GPS processing | [#8 — Split traces around long recording gaps](https://github.com/vrajpatell/opentrace-ml/issues/8) |
 | Privacy and aggregation | [#10 — Add a minimum-contributor gate](https://github.com/vrajpatell/opentrace-ml/issues/10) |
@@ -219,6 +234,9 @@ source for editing OpenStreetMap. OpenTrace does not upload them to OSM.
 | `map_matching.py` | Engine-independent matched/unmatched trace contracts |
 | `routing.py` | Transparent, auditable route scoring |
 | `datasets.py` | Metadata and optional public-data adapters |
+| `go/` | Native standard-library-only execution core and adapters |
+| `spec/v1/` | Language-neutral JSON contracts |
+| `go/testdata/conformance/v1/` | Shared Python/Go compatibility fixtures, also included in downloaded Go modules |
 
 See the [architecture notes](docs/ARCHITECTURE.md),
 [current-stage use cases](docs/USE_CASES.md), and [roadmap](docs/ROADMAP.md) for
