@@ -14,7 +14,8 @@ edge devices.
 | GPS interpolation, distances, and GeoJSON | Yes | Yes |
 | Route scoring and map-matcher boundary | Yes | Yes |
 | Detection and regression evaluation | Yes | Yes |
-| Online traffic forecaster | Planned after a serialized model format | Yes |
+| Traffic prediction and recursive forecast | Yes, from exported JSON | Yes |
+| Online traffic training and observation updates | No | Yes |
 | Training and data-frame workflows | No | Yes |
 | Heavy CV framework adapters | Optional future adapters | Protocol available; production adapter pending |
 
@@ -37,6 +38,8 @@ predictions.
 | Segment map-match output | O(n) | O(number of segments) |
 | Route scoring / bounding-box IoU | O(1) | O(1) |
 | Regression metrics | O(n) | O(1) |
+| Traffic prediction with l lags | O(l) | O(1) |
+| Recursive h-step forecast | O(h*l) | O(h+l) |
 | Detection metrics | O(p log p + p*g) | O(p + g) |
 | GeoJSON serialization | O(n) | O(n) encoded output |
 
@@ -133,12 +136,12 @@ applications should choose domain-appropriate relative and absolute tolerances.
 
 ## Pre-release and module tags
 
-Before merge, test this branch explicitly:
+The core is merged into `main`. During portable inference review, test that branch:
 
 ```bash
-go get github.com/vrajpatell/opentrace-ml/go@feat/go-performance-core
+go get github.com/vrajpatell/opentrace-ml/go@feat/portable-traffic-inference
 ```
 
-After merge, `@main` selects the reviewed branch head. A release for this nested
+`@main` selects the reviewed main branch head. A release for this nested
 Go module must use a tag such as `go/v0.1.0-alpha.1`; the Python/root tag alone
 does not release the nested module. No Go release is created by this PR.

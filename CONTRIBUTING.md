@@ -30,6 +30,13 @@ go test -run '^$' -bench . -benchmem ./...
 Changes to shared behavior must update `spec/v1/` when the portable contract
 changes and add a case to `go/testdata/conformance/v1/` that passes in both languages.
 
+For portable forecast changes, put Go on PATH and run the actual export/inference
+handoff in addition to the language-specific suites:
+
+```bash
+OPENTRACE_TEST_GO=1 python -m unittest discover -s tests -v
+```
+
 ## Pull requests
 
 - Keep changes focused and include tests for new behavior.
