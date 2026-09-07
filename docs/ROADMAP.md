@@ -1,5 +1,15 @@
 # OpenTrace ML roadmap
 
+## 0.2.2 — Native Go execution core
+
+- [x] Add shared versioned JSON contracts and cross-language fixtures.
+- [x] Add native trace, GPS, GPX, GeoJSON, route, map-match, and metric APIs.
+- [x] Guarantee linear ordered-batch geolocation and logarithmic indexed lookup.
+- [x] Add race, fuzz-seed, conformance, and allocation benchmarks to CI.
+- [ ] Publish the Go module after API review and a tagged pre-release.
+- [ ] Add benchmark regression reporting with `benchstat`.
+- [ ] Define an open serialized format for Go traffic-forecast inference.
+
 ## 0.1 — Common contracts and public-data adapters
 
 - Parse RDD2022 Pascal VOC road-damage annotations.
@@ -39,7 +49,8 @@
 
 ## 0.4 — Streaming and web integration
 
-- Publish detection, forecast, and route events through a stable JSON schema.
+- [x] Publish detection, GPS, and route-signal contracts through a stable JSON schema.
+- Publish forecast and route-event contracts through the shared schema.
 - Add a FastAPI reference service.
 - Add a MapLibre example application.
 - Measure end-to-end latency and synchronization error.

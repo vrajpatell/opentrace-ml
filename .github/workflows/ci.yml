@@ -28,3 +28,44 @@ jobs:
       - name: Test
         run: pytest
 
+  go:
+    name: Go ${{ matrix.go-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ["1.26.x", "1.27.x"]
+    defaults:
+      run:
+        working-directory: go
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache-dependency-path: go/go.mod
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Vet
+        run: go vet ./...
+      - name: Verify pure-Go build
+        run: CGO_ENABLED=0 go build ./...
+      - name: Test with race detector
+        run: go test -race ./...
+      - name: Bounded fuzz smoke tests
+        if: matrix.go-version == '1.27.x'
+        run: |
+          go test -run '^$' -fuzz FuzzBoundingBoxIoU -fuzztime=5s -parallel=2
+          go test -run '^$' -fuzz FuzzLoadGPXNeverPanics -fuzztime=5s -parallel=2
+      - name: Smoke benchmark
+        if: matrix.go-version == '1.27.x'
+        run: go test -run '^$' -bench BenchmarkTraceIndexLookup10K -benchtime=100ms ./...
+
+  go-required:
+    name: Go core
+    needs: go
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every Go matrix job
+        run: test '${{ needs.go.result }}' = 'success'
