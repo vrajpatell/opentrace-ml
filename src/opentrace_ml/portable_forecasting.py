@@ -26,7 +26,7 @@ _RFC3339 = re.compile(
 
 def _number(value: object, name: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ValueError(f"{name} must be a finite number")
+        raise TypeError(f"{name} must be a finite number")
     try:
         result = float(value)
     except OverflowError as error:
@@ -42,7 +42,7 @@ def _timestamp(value: datetime | str) -> datetime:
             raise ValueError("Timestamp must be RFC3339 with an explicit UTC offset")
         value = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if not isinstance(value, datetime):
-        raise ValueError("Timestamp must be a datetime or RFC3339 string")
+        raise TypeError("Timestamp must be a datetime or RFC3339 string")
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("Timestamp must have an explicit UTC offset")
     if not 1 <= value.year <= 9999:
@@ -91,7 +91,7 @@ class PortableTrafficModel:
         if self.format != TRAFFIC_MODEL_FORMAT or self.feature_layout != TRAFFIC_FEATURE_LAYOUT:
             raise ValueError("Unsupported traffic model format or feature layout")
         if isinstance(self.lags, bool) or not isinstance(self.lags, int):
-            raise ValueError("lags must be an integer")
+            raise TypeError("lags must be an integer")
         if not 1 <= self.lags <= MAX_TRAFFIC_LAGS:
             raise ValueError(f"lags must be between 1 and {MAX_TRAFFIC_LAGS}")
         for name in ("mean", "scale", "coefficients", "history"):
@@ -125,7 +125,10 @@ class PortableTrafficModel:
         """Validate exact fields, dimensions, versions, and finite parameters."""
         if not isinstance(value, Mapping) or set(value) != _FIELDS:
             raise ValueError("Traffic model must contain exactly the v1 fields")
-        return cls(**value)
+        try:
+            return cls(**value)
+        except TypeError as error:
+            raise ValueError("Traffic model contains a field with an invalid type") from error
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), allow_nan=False, sort_keys=True, separators=(",", ":"))
@@ -133,7 +136,7 @@ class PortableTrafficModel:
     @classmethod
     def from_json(cls, payload: str | bytes) -> PortableTrafficModel:
         if not isinstance(payload, (str, bytes)):
-            raise ValueError("Model JSON must be text or UTF-8 bytes")
+            raise TypeError("Model JSON must be text or UTF-8 bytes")
         encoded = payload.encode("utf-8") if isinstance(payload, str) else payload
         if len(encoded) > MAX_TRAFFIC_MODEL_BYTES:
             raise ValueError("Traffic model JSON exceeds the 1 MiB limit")

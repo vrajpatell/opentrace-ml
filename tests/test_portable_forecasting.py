@@ -121,11 +121,13 @@ class PortableForecastTests(unittest.TestCase):
 
     def test_calendar_offsets_order_and_precision(self):
         model = PortableTrafficModel.load(FIXTURES / "traffic_model.json")
+        # Deliberately remove the zone to exercise rejection of naive inputs.
+        naive = datetime(2026, 9, 5, tzinfo=timezone.utc).replace(tzinfo=None)
         with self.assertRaises(ValueError):
             model.forecast(["2026-09-05T00:00:00+01:00", "2026-09-04T23:00:00Z"])
         for timestamp in ("2026-09-05", "2026-09-05T00:00:00", "bad",
                           "2026-09-05T00:00:00.1234567Z", "2026-09-05T00:00:00+00:99",
-                          datetime(2026, 9, 5), pd.NaT):
+                          naive, pd.NaT):
             with self.subTest(timestamp=timestamp), self.assertRaises(ValueError):
                 model.predict(timestamp)
         with self.assertRaises(ValueError):
@@ -136,6 +138,10 @@ class PortableForecastTests(unittest.TestCase):
         result = model.forecast(["9999-01-01T00:00:00.000001Z",
                                  "9999-01-01T00:00:00.000002Z"])
         self.assertEqual(len(result), 2)
+        with self.assertRaises(TypeError):
+            model.predict(123)
+        with self.assertRaises(TypeError):
+            PortableTrafficModel.from_json(123)
 
     def test_clips_negative_and_rejects_overflow(self):
         snapshot = PortableTrafficModel.load(FIXTURES / "traffic_model.json").to_dict()
