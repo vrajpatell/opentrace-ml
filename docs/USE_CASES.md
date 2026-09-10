@@ -52,6 +52,13 @@ transparent and intended as a baseline, not a production routing policy.
 Wrap output from an external detector with `CallableDetector`. The downstream
 geolocation and GeoJSON code then remains independent of the chosen CV model.
 
+## 5. Native Go traffic forecasting
+
+For native Go services and CLIs, use the [portable traffic model](STAGE_5.md) to
+train in Python and perform local forecasts in Go. This supports an offline
+dashboard backend, a scheduled traffic report, or an experimental route-scoring
+component without shipping a Python runtime alongside the Go application.
+
 ## Not ready yet
 
 - production navigation decisions;

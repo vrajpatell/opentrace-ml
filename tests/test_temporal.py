@@ -231,3 +231,24 @@ def test_hourly_window_preserves_timezone_and_validates_samples():
     for count in [0, True, 2.5]:
         with pytest.raises(ValueError, match="samples"):
             select_hourly_traffic_window(frame, samples=count)
+
+
+def test_duplicate_unused_columns_do_not_change_temporal_results():
+    frame = traffic_frame()
+    extra = pd.DataFrame([[1, 2]] * len(frame), columns=["weather", "weather"])
+    enriched = pd.concat([frame, extra], axis=1)
+    assert_frame_equal(backtest(enriched), backtest(frame))
+    assert_frame_equal(
+        select_hourly_traffic_window(enriched, samples=4),
+        select_hourly_traffic_window(frame, samples=4),
+    )
+    model = OnlineTrafficForecaster(lags=1).fit_frame(enriched)
+    assert model._last_timestamp == frame.date_time.iloc[-1]
+
+
+@pytest.mark.parametrize("column", ["date_time", "traffic_volume"])
+def test_duplicate_selected_columns_are_still_rejected(column):
+    frame = traffic_frame()
+    ambiguous = pd.concat([frame, frame[[column]]], axis=1)
+    with pytest.raises(ValueError, match="unambiguous"):
+        backtest(ambiguous)

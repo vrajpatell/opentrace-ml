@@ -35,11 +35,13 @@ def validated_traffic_frame(
 
     if not isinstance(frame, pd.DataFrame):
         raise TypeError("Traffic observations must be a pandas DataFrame")
-    if timestamp_column == target_column or not frame.columns.is_unique:
+    if timestamp_column == target_column:
         raise ValueError("Timestamp and target columns must be distinct and unambiguous")
     required = {timestamp_column, target_column}
     if missing := required.difference(frame.columns):
         raise ValueError(f"Missing columns: {sorted(missing)}")
+    if any((frame.columns == name).sum() != 1 for name in required):
+        raise ValueError("Timestamp and target columns must be distinct and unambiguous")
     if frame.empty:
         raise ValueError("At least one traffic observation is required")
 

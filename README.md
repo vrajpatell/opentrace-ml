@@ -21,7 +21,7 @@ the stack.
 |---|---|
 | Computer vision | Parse RDD2022-style Pascal VOC annotations and adapt callable detectors |
 | Evaluation | Calculate per-class detection metrics and rolling traffic-forecast backtests |
-| Forecasting | Incremental linear learning, a CPU neural network, persistence, and seasonal baselines |
+| Forecasting | Incremental linear learning, a CPU neural network, persistence, and seasonal baselines; export linear models for native Go inference |
 | Geospatial | Interpolate detections onto GPS traces and export GeoJSON |
 | Private traces | Enforce consent, pseudonymize trip IDs, and clean GPX samples |
 | Map matching | Validate ordered matched and unmatched observations through an engine-independent contract |
@@ -170,6 +170,21 @@ located = geolocate_detections(detections, trace)
 geojson = detections_to_geojson(located)
 ```
 
+## Train in Python, forecast in Go
+
+The Python traffic forecaster can export a data-only model snapshot. Go loads
+the scaler, learned coefficients, intercept, and lag history without Python or
+CGo. Prediction is O(lags); recursive forecasting is O(horizon × lags).
+
+```bash
+python examples/export_traffic_model.py --synthetic-demo --output /tmp/opentrace-traffic.json
+(cd go && go run ./examples/forecast /tmp/opentrace-traffic.json \
+  2026-09-04T00:00:00Z 2026-09-04T01:00:00Z)
+```
+
+See [portable traffic inference](docs/STAGE_5.md) for the Python and Go APIs,
+timestamp/cadence rules, benchmarks, and numerical parity tests.
+
 ## Prepare a private GPX trace
 
 Trace preparation requires explicit consent, replaces the raw trip identifier
@@ -275,6 +290,7 @@ source for editing OpenStreetMap. OpenTrace does not upload them to OSM.
 | `forecasting.py` | Incremental traffic-volume forecasting |
 | `neural.py` | Batch CPU neural forecasting with training-only scaling |
 | `baselines.py` | Persistence and seasonal-naive reference forecasts |
+| `portable_forecasting.py` | Validated JSON model snapshots and portable inference |
 | `geo.py` | GPS interpolation, distances, and GeoJSON |
 | `gpx.py` | Timestamped GPX loading and normalization |
 | `trace.py` | Consent, pseudonymization, and trace cleaning |

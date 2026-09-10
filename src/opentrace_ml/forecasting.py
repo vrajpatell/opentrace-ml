@@ -13,6 +13,7 @@ from sklearn.linear_model import SGDRegressor
 from sklearn.preprocessing import StandardScaler
 
 from ._temporal import positive_frequency, positive_integer, validated_traffic_frame
+from .portable_forecasting import PortableTrafficModel
 
 
 class OnlineTrafficForecaster:
@@ -116,6 +117,24 @@ class OnlineTrafficForecaster:
         features = self._features(parsed, self._history)
         prediction = float(self._model.predict(self._scaler.transform(features))[0])
         return max(0.0, prediction)
+
+    def export_model(self) -> PortableTrafficModel:
+        """Copy fitted scaler, linear parameters, and lags for portable inference.
+
+        This is an inference snapshot, not a checkpoint for resuming training.
+        Callers must use the same timestamp wall-clock convention and sampling
+        cadence as training. No Python objects or pickle payloads are serialized.
+        """
+        if not self._fitted:
+            raise RuntimeError("The forecaster has not received enough training observations")
+        return PortableTrafficModel(
+            lags=self.lags,
+            mean=tuple(self._scaler.mean_.tolist()),
+            scale=tuple(self._scaler.scale_.tolist()),
+            coefficients=tuple(self._model.coef_.tolist()),
+            intercept=float(self._model.intercept_[0]),
+            history=tuple(self._history),
+        )
 
     def forecast(
         self,
