@@ -1,7 +1,9 @@
 """OpenTrace ML public API."""
 
+from .baselines import SeasonalNaiveForecaster
 from .evaluation import (
     DetectionMetrics,
+    PerClassDetectionMetrics,
     RegressionMetrics,
     bounding_box_iou,
     detection_metrics,
@@ -21,7 +23,9 @@ from .map_matching import (
     RawMapMatch,
 )
 from .models import BoundingBox, Detection, GeoDetection, GeoPoint
-from .protocols import CallableDetector, Detector, RawDetection
+from .neural import NeuralTrafficForecaster
+from .portable_forecasting import PortableTrafficModel
+from .protocols import CallableDetector, Detector, RawDetection, TrafficForecaster
 from .routing import RouteSignals, score_route
 from .trace import (
     PreparedTrace,
@@ -44,20 +48,25 @@ __all__ = [
     "MapMatchResult",
     "MapMatchSegment",
     "MapMatcher",
+    "NeuralTrafficForecaster",
     "OnlineTrafficForecaster",
+    "PerClassDetectionMetrics",
+    "PortableTrafficModel",
     "PreparedTrace",
     "RawDetection",
     "RawMapMatch",
     "RegressionMetrics",
     "RouteSignals",
+    "SeasonalNaiveForecaster",
     "TraceCleaningConfig",
     "TraceCleaningReport",
+    "TrafficForecaster",
     "bounding_box_iou",
     "detection_metrics",
-    "per_class_detection_metrics",
     "detections_to_geojson",
     "geolocate_detections",
     "load_gpx_points",
+    "per_class_detection_metrics",
     "prepare_trace",
     "pseudonymize_trip_id",
     "regression_metrics",

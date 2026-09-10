@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+import math
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import asdict, dataclass
 
 import numpy as np
 import pandas as pd
 
-from .forecasting import OnlineTrafficForecaster
+from ._temporal import positive_frequency, positive_integer, validated_traffic_frame
 from .models import BoundingBox, Detection
+from .protocols import TrafficForecaster
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,6 +42,38 @@ class DetectionMetrics:
         return asdict(self)
 
 
+@dataclass(frozen=True, slots=True)
+class PerClassDetectionMetrics(Mapping[str, DetectionMetrics]):
+    """Deterministic per-label detection metrics at one evaluation threshold.
+
+    ``metrics_by_label`` includes labels present in ground truth and labels with
+    at least one prediction at or above the configured confidence threshold.
+    Standard mapping operations such as iteration and ``items()`` are supported.
+    Call :meth:`as_dict` to create a JSON-serializable report.
+    """
+
+    metrics_by_label: dict[str, DetectionMetrics]
+
+    def __getitem__(self, label: str) -> DetectionMetrics:
+        """Return metrics for one detection label."""
+
+        return self.metrics_by_label[label]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(sorted(self.metrics_by_label))
+
+    def __len__(self) -> int:
+        return len(self.metrics_by_label)
+
+    def as_dict(self) -> dict[str, dict[str, float | int]]:
+        """Return an ordered, JSON-serializable per-label report."""
+
+        return {
+            label: metrics.as_dict()
+            for label, metrics in sorted(self.metrics_by_label.items())
+        }
+
+
 def regression_metrics(
     actual: Sequence[float],
     predicted: Sequence[float],
@@ -56,8 +90,10 @@ def regression_metrics(
         raise ValueError("At least one sample is required")
     if actual_values.shape != predicted_values.shape:
         raise ValueError("actual and predicted must contain the same number of samples")
-    if mape_epsilon <= 0:
-        raise ValueError("mape_epsilon must be positive")
+    if not np.isfinite(actual_values).all() or not np.isfinite(predicted_values).all():
+        raise ValueError("actual and predicted must contain only finite values")
+    if not math.isfinite(mape_epsilon) or mape_epsilon <= 0:
+        raise ValueError("mape_epsilon must be positive and finite")
 
     errors = predicted_values - actual_values
     denominator = np.maximum(np.abs(actual_values), mape_epsilon)
@@ -142,35 +178,40 @@ def per_class_detection_metrics(
     *,
     iou_threshold: float = 0.5,
     confidence_threshold: float = 0.0,
-) -> dict[str, DetectionMetrics]:
-    """Calculate per-class detection metrics (precision, recall, F1, TP, FP, FN).
+) -> PerClassDetectionMetrics:
+    """Report label-specific metrics using the same frame- and IoU-aware matching.
 
-    Evaluates predictions and ground truth grouped by class label, returning a
-    mapping from class label to its corresponding DetectionMetrics.
-    Classes present only in predictions have TP=0, recall=0.0, and FP matching candidate count.
-    Classes present only in ground truth have TP=0, precision=0.0, and FN matching expected count.
+    Predictions below ``confidence_threshold`` do not introduce a prediction-only
+    label. Labels present in ground truth are always reported, including when the
+    model makes no prediction for them.
     """
+
+    if not 0 < iou_threshold <= 1:
+        raise ValueError("iou_threshold must be between 0 and 1")
+    if not 0 <= confidence_threshold <= 1:
+        raise ValueError("confidence_threshold must be between 0 and 1")
+
     labels = sorted(
         {item.label for item in ground_truth}
         | {item.label for item in predictions if item.confidence >= confidence_threshold}
     )
-    result: dict[str, DetectionMetrics] = {}
-    for label in labels:
-        gt_class = [item for item in ground_truth if item.label == label]
-        pred_class = [item for item in predictions if item.label == label]
-        result[label] = detection_metrics(
-            gt_class,
-            pred_class,
-            iou_threshold=iou_threshold,
-            confidence_threshold=confidence_threshold,
-        )
-    return result
+    return PerClassDetectionMetrics(
+        metrics_by_label={
+            label: detection_metrics(
+                [item for item in ground_truth if item.label == label],
+                [item for item in predictions if item.label == label],
+                iou_threshold=iou_threshold,
+                confidence_threshold=confidence_threshold,
+            )
+            for label in labels
+        }
+    )
 
 
 def rolling_backtest(
     frame: pd.DataFrame,
     *,
-    forecaster_factory: Callable[[], OnlineTrafficForecaster],
+    forecaster_factory: Callable[[], TrafficForecaster],
     initial_window: int,
     horizon: int,
     step: int | None = None,
@@ -178,22 +219,27 @@ def rolling_backtest(
     timestamp_column: str = "date_time",
     target_column: str = "traffic_volume",
 ) -> pd.DataFrame:
-    """Evaluate repeated train-then-forecast windows without future-data leakage."""
+    """Evaluate fresh models on strictly later, timestamp-aligned observations.
 
-    if initial_window < 2 or horizon < 1:
-        raise ValueError("initial_window must be at least 2 and horizon must be positive")
+    Inputs are sorted but must have unique, non-missing timestamps on the exact
+    ``frequency`` grid and finite non-negative targets. Gaps and duplicates must
+    be resolved explicitly by the caller. Forecasts must include ``timestamp``
+    and ``predicted_traffic_volume`` columns covering exactly the test timestamps;
+    their row order is irrelevant. The factory must return a fresh model per fold.
+    """
+
+    positive_integer(initial_window, "initial_window", minimum=2)
+    positive_integer(horizon, "horizon")
     step = horizon if step is None else step
-    if step < 1:
-        raise ValueError("step must be positive")
-    required = {timestamp_column, target_column}
-    if missing := required.difference(frame.columns):
-        raise ValueError(f"Missing columns: {sorted(missing)}")
-
-    ordered = frame.loc[:, [timestamp_column, target_column]].copy()
-    ordered[timestamp_column] = pd.to_datetime(ordered[timestamp_column])
-    ordered = ordered.dropna().sort_values(timestamp_column).reset_index(drop=True)
+    positive_integer(step, "step")
+    offset = positive_frequency(frequency)
+    ordered = validated_traffic_frame(frame, timestamp_column, target_column)
     if initial_window + horizon > len(ordered):
         raise ValueError("The frame is too short for the requested initial window and horizon")
+    timestamps = pd.DatetimeIndex(ordered[timestamp_column])
+    expected = pd.date_range(timestamps[0], periods=len(timestamps), freq=offset)
+    if not timestamps.equals(expected):
+        raise ValueError("Timestamps must form an uninterrupted grid at the requested frequency")
 
     folds: list[pd.DataFrame] = []
     final_split = len(ordered) - horizon
@@ -202,7 +248,7 @@ def rolling_backtest(
         train = ordered.iloc[:split]
         test = ordered.iloc[split : split + horizon]
         model = forecaster_factory().fit_frame(
-            train,
+            train.copy(),
             timestamp_column=timestamp_column,
             target_column=target_column,
         )
@@ -211,13 +257,18 @@ def rolling_backtest(
             periods=len(test),
             frequency=frequency,
         )
+        forecast = validated_traffic_frame(forecast, "timestamp", "predicted_traffic_volume")
+        test_timestamps = pd.DatetimeIndex(test[timestamp_column])
+        if not pd.DatetimeIndex(forecast["timestamp"]).equals(test_timestamps):
+            raise ValueError("Forecast timestamps must match the test window exactly")
+        aligned = forecast.set_index("timestamp").reindex(test_timestamps)
         folds.append(
             pd.DataFrame(
                 {
                     "fold": fold_number,
                     "timestamp": test[timestamp_column].to_numpy(),
                     "actual": test[target_column].astype(float).to_numpy(),
-                    "predicted": forecast["predicted_traffic_volume"].to_numpy(),
+                    "predicted": aligned["predicted_traffic_volume"].to_numpy(),
                 }
             )
         )

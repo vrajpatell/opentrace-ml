@@ -12,6 +12,9 @@ import pandas as pd
 from sklearn.linear_model import SGDRegressor
 from sklearn.preprocessing import StandardScaler
 
+from ._temporal import positive_frequency, positive_integer, validated_traffic_frame
+from .portable_forecasting import PortableTrafficModel
+
 
 class OnlineTrafficForecaster:
     """Small online forecaster based on calendar signals and recent observations.
@@ -21,8 +24,7 @@ class OnlineTrafficForecaster:
     """
 
     def __init__(self, lags: int = 6, random_state: int = 42) -> None:
-        if lags < 1:
-            raise ValueError("lags must be at least 1")
+        positive_integer(lags, "lags")
         self.lags = lags
         self._history: deque[float] = deque(maxlen=lags)
         self._scaler = StandardScaler()
@@ -35,6 +37,7 @@ class OnlineTrafficForecaster:
             random_state=random_state,
         )
         self._fitted = False
+        self._last_timestamp: pd.Timestamp | None = None
 
     @staticmethod
     def _as_datetime(value: datetime | pd.Timestamp | str) -> pd.Timestamp:
@@ -42,6 +45,14 @@ class OnlineTrafficForecaster:
         if pd.isna(timestamp):
             raise ValueError("Timestamp cannot be missing")
         return timestamp
+
+    def _require_later_timestamp(self, timestamp: pd.Timestamp) -> None:
+        if self._last_timestamp is None:
+            return
+        if str(timestamp.tz) != str(self._last_timestamp.tz):
+            raise ValueError("Timestamps must use the same timezone as previous observations")
+        if timestamp <= self._last_timestamp:
+            raise ValueError("Timestamp must be strictly later than the last observation")
 
     def _features(self, timestamp: pd.Timestamp, history: Iterable[float]) -> np.ndarray:
         values = list(history)
@@ -67,6 +78,7 @@ class OnlineTrafficForecaster:
             raise ValueError("Traffic volume must be a finite non-negative number")
 
         parsed = self._as_datetime(timestamp)
+        self._require_later_timestamp(parsed)
         if len(self._history) == self.lags:
             features = self._features(parsed, self._history)
             self._scaler.partial_fit(features)
@@ -74,6 +86,7 @@ class OnlineTrafficForecaster:
             self._model.partial_fit(transformed, np.asarray([volume]))
             self._fitted = True
         self._history.append(volume)
+        self._last_timestamp = parsed
 
     def fit_frame(
         self,
@@ -82,16 +95,14 @@ class OnlineTrafficForecaster:
         timestamp_column: str = "date_time",
         target_column: str = "traffic_volume",
     ) -> OnlineTrafficForecaster:
-        """Fit incrementally from a time-ordered pandas DataFrame."""
+        """Append a validated, sorted batch without resetting learned state.
 
-        required = {timestamp_column, target_column}
-        missing = required.difference(frame.columns)
-        if missing:
-            raise ValueError(f"Missing columns: {sorted(missing)}")
+        Duplicate/missing timestamps and invalid targets are rejected before any
+        update. A later batch must start after the last learned observation.
+        """
 
-        ordered = frame.loc[:, [timestamp_column, target_column]].copy()
-        ordered[timestamp_column] = pd.to_datetime(ordered[timestamp_column])
-        ordered = ordered.dropna().sort_values(timestamp_column)
+        ordered = validated_traffic_frame(frame, timestamp_column, target_column)
+        self._require_later_timestamp(ordered.iloc[0][timestamp_column])
         for timestamp, volume in ordered.itertuples(index=False, name=None):
             self.update(timestamp, volume)
         return self
@@ -101,9 +112,29 @@ class OnlineTrafficForecaster:
 
         if not self._fitted:
             raise RuntimeError("The forecaster has not received enough training observations")
-        features = self._features(self._as_datetime(timestamp), self._history)
+        parsed = self._as_datetime(timestamp)
+        self._require_later_timestamp(parsed)
+        features = self._features(parsed, self._history)
         prediction = float(self._model.predict(self._scaler.transform(features))[0])
         return max(0.0, prediction)
+
+    def export_model(self) -> PortableTrafficModel:
+        """Copy fitted scaler, linear parameters, and lags for portable inference.
+
+        This is an inference snapshot, not a checkpoint for resuming training.
+        Callers must use the same timestamp wall-clock convention and sampling
+        cadence as training. No Python objects or pickle payloads are serialized.
+        """
+        if not self._fitted:
+            raise RuntimeError("The forecaster has not received enough training observations")
+        return PortableTrafficModel(
+            lags=self.lags,
+            mean=tuple(self._scaler.mean_.tolist()),
+            scale=tuple(self._scaler.scale_.tolist()),
+            coefficients=tuple(self._model.coef_.tolist()),
+            intercept=float(self._model.intercept_[0]),
+            history=tuple(self._history),
+        )
 
     def forecast(
         self,
@@ -114,12 +145,16 @@ class OnlineTrafficForecaster:
     ) -> pd.DataFrame:
         """Produce a recursive multi-step forecast without mutating the model."""
 
-        if periods < 1:
-            raise ValueError("periods must be at least 1")
+        positive_integer(periods, "periods")
+        offset = positive_frequency(frequency)
         if not self._fitted:
             raise RuntimeError("The forecaster has not received enough training observations")
 
-        timestamps = pd.date_range(start=self._as_datetime(start), periods=periods, freq=frequency)
+        parsed = self._as_datetime(start)
+        self._require_later_timestamp(parsed)
+        timestamps = pd.date_range(start=parsed, periods=periods, freq=offset)
+        if timestamps[0] != parsed:
+            raise ValueError("Forecast start must be aligned to the requested frequency")
         history: deque[float] = deque(self._history, maxlen=self.lags)
         predictions: list[float] = []
         for timestamp in timestamps:

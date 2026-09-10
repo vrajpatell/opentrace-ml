@@ -28,6 +28,19 @@ python examples/traffic_backtest.py
 This is appropriate for validating the forecasting API before adding a larger
 spatiotemporal model.
 
+For a small ML experiment, compare persistence, yesterday's hourly pattern,
+incremental linear learning, and a CPU neural network on the same folds:
+
+```bash
+python examples/benchmark_traffic_models.py --synthetic-demo
+python examples/benchmark_traffic_models.py --uci
+```
+
+Use the JSON report in a notebook or a dashboard showing error by forecast lead.
+The synthetic run verifies the workflow; evaluate public or consented data from
+your target setting before claiming accuracy. See the
+[neural forecasting guide](NEURAL_FORECASTING.md).
+
 ## 3. Route comparison service
 
 Use `RouteSignals` and `score_route` inside a small API or batch job to compare
@@ -39,6 +52,13 @@ transparent and intended as a baseline, not a production routing policy.
 Wrap output from an external detector with `CallableDetector`. The downstream
 geolocation and GeoJSON code then remains independent of the chosen CV model.
 
+## 5. Native Go traffic forecasting
+
+For native Go services and CLIs, use the [portable traffic model](STAGE_5.md) to
+train in Python and perform local forecasts in Go. This supports an offline
+dashboard backend, a scheduled traffic report, or an experimental route-scoring
+component without shipping a Python runtime alongside the Go application.
+
 ## Not ready yet
 
 - production navigation decisions;
@@ -46,4 +66,3 @@ geolocation and GeoJSON code then remains independent of the chosen CV model.
 - automatic edits to OpenStreetMap;
 - safety-critical road-condition alerts;
 - claims of model accuracy without evaluation on the target geography.
-

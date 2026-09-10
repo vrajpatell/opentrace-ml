@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from ._temporal import positive_integer, validated_traffic_frame
 from .vision import parse_pascal_voc
 
 
@@ -71,6 +72,30 @@ def fetch_uci_traffic_volume() -> pd.DataFrame:
         frame["traffic_volume"] = pd.Series(target).to_numpy()
     frame["date_time"] = pd.to_datetime(frame["date_time"])
     return frame
+
+
+def select_hourly_traffic_window(frame: pd.DataFrame, *, samples: int) -> pd.DataFrame:
+    """Select the latest uninterrupted window of ``samples`` hourly observations.
+
+    Expects ``date_time`` and ``traffic_volume``. Identical readings repeated at
+    one timestamp are collapsed; conflicting readings are rejected. No gaps are
+    filled. Only the timestamp and target columns are returned, and the input is
+    unchanged. Selection is based on timestamps and availability, not model scores.
+    """
+
+    positive_integer(samples, "samples", minimum=2)
+    ordered = validated_traffic_frame(
+        frame, "date_time", "traffic_volume", allow_duplicates=True
+    )
+    if (ordered.groupby("date_time")["traffic_volume"].nunique() > 1).any():
+        raise ValueError("Conflicting traffic values share a timestamp")
+    ordered = ordered.drop_duplicates("date_time").reset_index(drop=True)
+    runs = ordered["date_time"].diff().ne(pd.Timedelta(hours=1)).cumsum()
+    lengths = runs.groupby(runs).size()
+    eligible = lengths[lengths >= samples]
+    if eligible.empty:
+        raise ValueError(f"No uninterrupted hourly window contains {samples} observations")
+    return ordered.loc[runs == eligible.index[-1]].tail(samples).reset_index(drop=True)
 
 
 def load_rdd2022_annotations(root: str | Path) -> pd.DataFrame:

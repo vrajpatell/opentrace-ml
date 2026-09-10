@@ -1,5 +1,39 @@
 # OpenTrace ML roadmap
 
+## Neural traffic baselines — next Python phase
+
+- [x] Add a CPU multilayer perceptron with lag/calendar inputs and training-only scaling.
+- [x] Add persistence and seasonal-naive comparators behind a shared forecast protocol.
+- [x] Reject temporal leakage from duplicate timestamps and misaligned test predictions.
+- [x] Provide synthetic, public UCI, and local CSV benchmark entry points.
+- [x] Report errors by forecast lead and record training convergence warnings.
+- [ ] Validate across multiple public-data seasons and independently held-out windows.
+- [ ] Add calibrated forecast intervals evaluated by lead time.
+- [ ] Design a versioned neural inference format and Python/Go conformance fixtures.
+
+See [Neural forecasting](NEURAL_FORECASTING.md). This is an experimental Python
+baseline; it does not add neural inference to the Go core or release pretrained weights.
+
+## 0.2.3 — Portable traffic inference
+
+- [x] Define a versioned JSON snapshot for trained scaler and linear model state.
+- [x] Export fitted Python traffic models without executable serialization.
+- [x] Add immutable native Go prediction and recursive forecasting.
+- [x] Validate Python-trained exports in a real Go process in CI.
+- [x] Add model-loader fuzzing, benchmarks and offline examples.
+- [ ] Add explicit training-location and cadence metadata.
+- [ ] Connect validated traffic predictions to road-network edges.
+
+## 0.2.2 — Native Go execution core
+
+- [x] Add shared versioned JSON contracts and cross-language fixtures.
+- [x] Add native trace, GPS, GPX, GeoJSON, route, map-match, and metric APIs.
+- [x] Guarantee linear ordered-batch geolocation and logarithmic indexed lookup.
+- [x] Add race, fuzz-seed, conformance, and allocation benchmarks to CI.
+- [ ] Publish the Go module after API review and a tagged pre-release.
+- [ ] Add benchmark regression reporting with `benchstat`.
+- [x] Define an open serialized format for Go traffic-forecast inference.
+
 ## 0.1 — Common contracts and public-data adapters
 
 - Parse RDD2022 Pascal VOC road-damage annotations.
@@ -12,6 +46,7 @@
 
 - [x] Add a detector adapter protocol and callable reference adapter.
 - [x] Add detection metrics and rolling traffic backtesting.
+- [x] Add per-class detection metrics at a configurable IoU threshold.
 - [x] Add runnable current-stage mini-projects.
 - [ ] Add an Apache-2.0-compatible reference detection model.
 - Add train/evaluate commands for an RDD2022 subset.
@@ -25,7 +60,7 @@
 - [x] Remove duplicate samples and implausible speed jumps deterministically.
 - [x] Emit aggregate cleaning counts without logging coordinates.
 - [ ] Segment traces around long recording gaps.
-- [ ] Define key-rotation and retention guidance for deployments.
+- [x] Define key-rotation and retention guidance for deployments.
 
 ## 0.3 — Route intelligence
 
@@ -38,7 +73,8 @@
 
 ## 0.4 — Streaming and web integration
 
-- Publish detection, forecast, and route events through a stable JSON schema.
+- [x] Publish detection, GPS, and route-signal contracts through a stable JSON schema.
+- Publish forecast and route-event contracts through the shared schema.
 - Add a FastAPI reference service.
 - Add a MapLibre example application.
 - Measure end-to-end latency and synchronization error.

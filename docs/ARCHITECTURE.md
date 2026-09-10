@@ -3,6 +3,17 @@
 OpenTrace ML uses shared event contracts to keep vision, forecasting, and
 routing components independent.
 
+Python provides training, public-data tooling, and reference implementations.
+Go provides a native execution core for latency-sensitive services and edge
+processes. Both consume the versioned schemas in `spec/` and must pass the same
+fixtures in `go/testdata/conformance/`.
+
+The traffic forecaster exports a data-only JSON inference snapshot containing
+its scaler, linear parameters and recent observations. Both Python and Go
+implement that versioned inference equation; Go does not require the Python
+training runtime. See [stage five](STAGE_5.md) for the explicit timestamp and
+cadence contract.
+
 ## Data flow
 
 1. A detector emits a label, confidence, bounding box, frame identifier, and
@@ -28,6 +39,8 @@ routing components independent.
   downstream pipeline.
 - Raw device IDs must never enter OpenTrace. Deployments provide a trip-scoped
   identifier and retain the HMAC secret outside code and logs.
+- Deployment key rotation, compromise response, and trace-retention guidance is
+  documented in [Privacy and key management](PRIVACY_AND_KEY_MANAGEMENT.md).
 - `PreparedTrace.points` remains sensitive. Community layers must expose only
   thresholded, aggregated centerlines after human review, never raw traces.
 - RDD2022-derived detections remain application-layer output and are not an
@@ -38,6 +51,10 @@ routing components independent.
 The initial contracts are `BoundingBox`, `Detection`, `GeoPoint`,
 `GeoDetection`, `PreparedTrace`, and `MapMatchResult`. Backends may change as
 long as they produce these objects or equivalent serialized records.
+
+The Go core has no third-party dependencies and no CGo requirement. Interfaces
+sit at coarse external boundaries such as `MapMatcher`; hot in-memory loops use
+concrete slices. See [Go performance and compatibility](GO_PERFORMANCE.md).
 
 ## Next integration boundary
 

@@ -75,6 +75,15 @@ def _clean_trace(
         for current, following in pairwise(ordered)
     ):
         raise ValueError("GPS points must be ordered by timestamp")
+    if any(
+        current.timestamp_seconds == following.timestamp_seconds
+        and (
+            current.latitude != following.latitude
+            or current.longitude != following.longitude
+        )
+        for current, following in pairwise(ordered)
+    ):
+        raise ValueError("Different GPS positions cannot share the same timestamp")
 
     kept = [ordered[0]]
     duplicates_removed = 0
