@@ -8,8 +8,9 @@ that need predictable latency without a Python runtime or CGo.
 go get github.com/vrajpatell/opentrace-ml/go
 ```
 
-This module is not yet tagged. During review use
-`go get github.com/vrajpatell/opentrace-ml/go@feat/go-performance-core`.
+This module is not yet tagged. The reviewed core is available at `@main`.
+During review of portable forecasts use
+`go get github.com/vrajpatell/opentrace-ml/go@feat/portable-traffic-inference`.
 
 ```go
 package main
@@ -43,11 +44,15 @@ func main() {
 - Transparent route scoring
 - Detection, per-class detection, and regression metrics
 - Cancellable map-matcher adapter interface
+- Versioned JSON traffic-model loading, zero-allocation predictions and recursive forecasts
 - Unit, seed-fuzz, race, conformance, and benchmark coverage
 
-Training, data-frame workflows, the online forecasting model, and heavyweight
-computer-vision adapters remain in Python. Model runtimes and routing engines
-belong behind optional adapters rather than in the Go core.
+Training and online observation updates remain in Python. Native Go inference
+uses the exported traffic snapshot. Heavyweight CV runtimes and routing engines
+belong behind optional adapters.
+
+See [portable traffic inference](https://github.com/vrajpatell/opentrace-ml/blob/main/docs/STAGE_5.md)
+for an end-to-end export example and the timestamp/feature contract.
 
 ## Verify
 

@@ -8,6 +8,12 @@ Go provides a native execution core for latency-sensitive services and edge
 processes. Both consume the versioned schemas in `spec/` and must pass the same
 fixtures in `go/testdata/conformance/`.
 
+The traffic forecaster exports a data-only JSON inference snapshot containing
+its scaler, linear parameters and recent observations. Both Python and Go
+implement that versioned inference equation; Go does not require the Python
+training runtime. See [stage five](STAGE_5.md) for the explicit timestamp and
+cadence contract.
+
 ## Data flow
 
 1. A detector emits a label, confidence, bounding box, frame identifier, and

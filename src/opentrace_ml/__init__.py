@@ -22,6 +22,7 @@ from .map_matching import (
     RawMapMatch,
 )
 from .models import BoundingBox, Detection, GeoDetection, GeoPoint
+from .portable_forecasting import PortableTrafficModel
 from .protocols import CallableDetector, Detector, RawDetection
 from .routing import RouteSignals, score_route
 from .trace import (
@@ -47,6 +48,7 @@ __all__ = [
     "MapMatcher",
     "OnlineTrafficForecaster",
     "PerClassDetectionMetrics",
+    "PortableTrafficModel",
     "PreparedTrace",
     "RawDetection",
     "RawMapMatch",

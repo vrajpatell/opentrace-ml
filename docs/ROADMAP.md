@@ -1,5 +1,15 @@
 # OpenTrace ML roadmap
 
+## 0.2.3 — Portable traffic inference
+
+- [x] Define a versioned JSON snapshot for trained scaler and linear model state.
+- [x] Export fitted Python traffic models without executable serialization.
+- [x] Add immutable native Go prediction and recursive forecasting.
+- [x] Validate Python-trained exports in a real Go process in CI.
+- [x] Add model-loader fuzzing, benchmarks and offline examples.
+- [ ] Add explicit training-location and cadence metadata.
+- [ ] Connect validated traffic predictions to road-network edges.
+
 ## 0.2.2 — Native Go execution core
 
 - [x] Add shared versioned JSON contracts and cross-language fixtures.
@@ -8,7 +18,7 @@
 - [x] Add race, fuzz-seed, conformance, and allocation benchmarks to CI.
 - [ ] Publish the Go module after API review and a tagged pre-release.
 - [ ] Add benchmark regression reporting with `benchstat`.
-- [ ] Define an open serialized format for Go traffic-forecast inference.
+- [x] Define an open serialized format for Go traffic-forecast inference.
 
 ## 0.1 — Common contracts and public-data adapters
 
