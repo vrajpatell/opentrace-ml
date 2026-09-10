@@ -21,7 +21,7 @@ the stack.
 |---|---|
 | Computer vision | Parse RDD2022-style Pascal VOC annotations and adapt callable detectors |
 | Evaluation | Calculate per-class detection metrics and rolling traffic-forecast backtests |
-| Forecasting | Learn traffic-volume patterns incrementally with `partial_fit` |
+| Forecasting | Incremental linear learning, a CPU neural network, persistence, and seasonal baselines |
 | Geospatial | Interpolate detections onto GPS traces and export GeoJSON |
 | Private traces | Enforce consent, pseudonymize trip IDs, and clean GPX samples |
 | Map matching | Validate ordered matched and unmatched observations through an engine-independent contract |
@@ -90,6 +90,9 @@ python examples/road_damage_route_demo.py tests/fixtures/rdd_sample.xml
 OPENTRACE_PSEUDONYM_KEY='replace-with-a-secret' \
   python examples/map_match_fixture.py
 
+# Compare four traffic models on original synthetic data, entirely offline.
+python examples/benchmark_traffic_models.py --synthetic-demo
+
 # Run the complete test suite.
 python -m pytest -q
 
@@ -111,6 +114,45 @@ json_ready = report.as_dict()
 
 Labels that appear only in predictions or only in ground truth are included in the
 report, making false positives and missed damage classes visible.
+
+## Neural traffic forecasting
+
+Train a small multilayer perceptron on your own regular traffic series:
+
+```python
+import pandas as pd
+from opentrace_ml import NeuralTrafficForecaster
+from opentrace_ml.datasets import select_hourly_traffic_window
+
+frame = select_hourly_traffic_window(pd.read_csv("traffic.csv"), samples=720)
+model = NeuralTrafficForecaster(lags=24, random_state=42).fit_frame(frame)
+forecast = model.forecast(
+    frame["date_time"].iloc[-1] + pd.Timedelta(hours=1), periods=24
+)
+```
+
+The network uses past traffic and calendar features, with input and target
+scaling learned only from training examples. It runs on CPU using the existing
+scikit-learn dependency. Fit it again to learn new observations; use
+`OnlineTrafficForecaster` when incremental updates are needed.
+
+Compare it with persistence, a daily seasonal baseline, and the online linear
+model before deciding whether it helps your application:
+
+```bash
+pip install -e '.[data]'
+python examples/benchmark_traffic_models.py --uci
+# Or use an already downloaded CSV (plain or gzip-compressed).
+python examples/benchmark_traffic_models.py --csv /path/to/traffic.csv.gz
+```
+
+The JSON report includes aggregate and lead-time errors, training warnings,
+data-window selection, seed, and dependency versions. Forecast evaluation
+rejects duplicate timestamps and gaps; the hourly window helper collapses only
+agreeing duplicate readings and never fills gaps. Neural forecasts are
+experimental point estimates, with no calibrated uncertainty or Go export yet.
+See the [neural forecasting guide](docs/NEURAL_FORECASTING.md) for the evaluation
+protocol, compatibility changes, and contribution ideas.
 
 ## Python quick start
 
@@ -182,6 +224,9 @@ New contributors can start with one bounded issue:
 
 | Interest | Suggested issue |
 |---|---|
+| ML evaluation | [#20 — Evaluate across public-data seasons](https://github.com/vrajpatell/opentrace-ml/issues/20) |
+| Streaming ML | [#21 — Diagnose online learning and scaling](https://github.com/vrajpatell/opentrace-ml/issues/21) |
+| Neural inference and Go | [#22 — Design portable neural inference](https://github.com/vrajpatell/opentrace-ml/issues/22) |
 | OpenStreetMap and routing | [#3 — Add a tiny offline OSM integration fixture](https://github.com/vrajpatell/opentrace-ml/issues/3) |
 | Go performance | Extend [benchmarks and cross-language conformance tests](docs/GO_PERFORMANCE.md) |
 | Detector integrations | [#4 — Add an optional MMDetection/RTMDet adapter](https://github.com/vrajpatell/opentrace-ml/issues/4) |
@@ -225,9 +270,11 @@ source for editing OpenStreetMap. OpenTrace does not upload them to OSM.
 |---|---|
 | `models.py` | Stable detection and GPS data contracts |
 | `vision.py` | Model-agnostic annotation parsing |
-| `protocols.py` | External detector adapter contracts |
+| `protocols.py` | Detector and traffic-forecaster adapter contracts |
 | `evaluation.py` | Detection metrics and rolling forecast evaluation |
 | `forecasting.py` | Incremental traffic-volume forecasting |
+| `neural.py` | Batch CPU neural forecasting with training-only scaling |
+| `baselines.py` | Persistence and seasonal-naive reference forecasts |
 | `geo.py` | GPS interpolation, distances, and GeoJSON |
 | `gpx.py` | Timestamped GPX loading and normalization |
 | `trace.py` | Consent, pseudonymization, and trace cleaning |
