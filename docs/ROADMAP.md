@@ -1,5 +1,19 @@
 # OpenTrace ML roadmap
 
+## Neural traffic baselines — next Python phase
+
+- [x] Add a CPU multilayer perceptron with lag/calendar inputs and training-only scaling.
+- [x] Add persistence and seasonal-naive comparators behind a shared forecast protocol.
+- [x] Reject temporal leakage from duplicate timestamps and misaligned test predictions.
+- [x] Provide synthetic, public UCI, and local CSV benchmark entry points.
+- [x] Report errors by forecast lead and record training convergence warnings.
+- [ ] Validate across multiple public-data seasons and independently held-out windows.
+- [ ] Add calibrated forecast intervals evaluated by lead time.
+- [ ] Design a versioned neural inference format and Python/Go conformance fixtures.
+
+See [Neural forecasting](NEURAL_FORECASTING.md). This is an experimental Python
+baseline; it does not add neural inference to the Go core or release pretrained weights.
+
 ## 0.2.3 — Portable traffic inference
 
 - [x] Define a versioned JSON snapshot for trained scaler and linear model state.

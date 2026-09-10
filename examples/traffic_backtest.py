@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 
 from opentrace_ml import OnlineTrafficForecaster, regression_metrics, rolling_backtest
-from opentrace_ml.datasets import fetch_uci_traffic_volume
+from opentrace_ml.datasets import fetch_uci_traffic_volume, select_hourly_traffic_window
 
 
 def main() -> None:
-    frame = fetch_uci_traffic_volume().sort_values("date_time").tail(720)
+    frame = select_hourly_traffic_window(fetch_uci_traffic_volume(), samples=720)
     result = rolling_backtest(
         frame,
         forecaster_factory=lambda: OnlineTrafficForecaster(lags=24),
@@ -23,4 +23,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

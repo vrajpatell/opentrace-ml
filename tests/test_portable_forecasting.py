@@ -19,9 +19,9 @@ from opentrace_ml.portable_forecasting import MAX_TRAFFIC_MODEL_BYTES
 FIXTURES = Path(__file__).parents[1] / "go" / "testdata" / "conformance" / "v1"
 
 
-def trained_model(lags=3):
+def trained_model(lags=3, *, tz=timezone.utc):
     model = OnlineTrafficForecaster(lags=lags)
-    start = datetime(2026, 8, 31, tzinfo=timezone.utc)
+    start = datetime(2026, 8, 31, tzinfo=tz)
     for index in range(96):
         model.update(start + timedelta(hours=index), 100 + (index % 24) * 5)
     return model
@@ -32,8 +32,8 @@ class PortableForecastTests(unittest.TestCase):
     def test_trained_python_export_runs_in_native_go(self):
         go = shutil.which("go")
         self.assertIsNotNone(go, "OPENTRACE_TEST_GO=1 requires the Go toolchain")
-        model = trained_model(lags=6)
         timestamps = pd.date_range("2026-09-04T23:00:00+05:30", periods=24, freq="h")
+        model = trained_model(lags=6, tz=timestamps.tz)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "traffic.json"
             model.export_model().save(path)
@@ -49,10 +49,10 @@ class PortableForecastTests(unittest.TestCase):
     def test_export_matches_sklearn_predictions_and_recursive_forecast(self):
         for lags in (1, 3, 6):
             with self.subTest(lags=lags):
-                model = trained_model(lags)
+                timestamps = pd.date_range("2026-09-05T23:30:00+05:30", periods=24, freq="h")
+                model = trained_model(lags, tz=timestamps.tz)
                 portable = model.export_model()
                 restored = PortableTrafficModel.from_json(portable.to_json())
-                timestamps = pd.date_range("2026-09-05T23:30:00+05:30", periods=24, freq="h")
                 for timestamp in timestamps:
                     self.assertTrue(math.isclose(
                         model.predict(timestamp), restored.predict(timestamp),
@@ -156,13 +156,14 @@ class PortableForecastTests(unittest.TestCase):
         fixture = json.loads((FIXTURES / "traffic_predictions.json").read_text())
         portable = PortableTrafficModel.load(FIXTURES / "traffic_model.json")
         # Independently evaluate the fixed snapshot through the existing sklearn path.
-        reference = trained_model(portable.lags)
-        reference._scaler.mean_ = np.asarray(portable.mean)
-        reference._scaler.scale_ = np.asarray(portable.scale)
-        reference._model.coef_ = np.asarray(portable.coefficients)
-        reference._model.intercept_ = np.asarray([portable.intercept])
-        reference._history = deque(portable.history, maxlen=portable.lags)
         for case in fixture["single"]:
+            # Keep each reference model's training calendar in the forecast zone.
+            reference = trained_model(portable.lags, tz=pd.Timestamp(case["timestamp"]).tz)
+            reference._scaler.mean_ = np.asarray(portable.mean)
+            reference._scaler.scale_ = np.asarray(portable.scale)
+            reference._model.coef_ = np.asarray(portable.coefficients)
+            reference._model.intercept_ = np.asarray([portable.intercept])
+            reference._history = deque(portable.history, maxlen=portable.lags)
             self.assertAlmostEqual(portable.predict(case["timestamp"]), case["expected"], places=9)
             self.assertAlmostEqual(reference.predict(case["timestamp"]), case["expected"], places=9)
         np.testing.assert_allclose(

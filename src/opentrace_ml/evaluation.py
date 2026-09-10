@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 
 import numpy as np
 import pandas as pd
 
-from .forecasting import OnlineTrafficForecaster
+from ._temporal import positive_frequency, positive_integer, validated_traffic_frame
 from .models import BoundingBox, Detection
+from .protocols import TrafficForecaster
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,8 +83,10 @@ def regression_metrics(
         raise ValueError("At least one sample is required")
     if actual_values.shape != predicted_values.shape:
         raise ValueError("actual and predicted must contain the same number of samples")
-    if mape_epsilon <= 0:
-        raise ValueError("mape_epsilon must be positive")
+    if not np.isfinite(actual_values).all() or not np.isfinite(predicted_values).all():
+        raise ValueError("actual and predicted must contain only finite values")
+    if not math.isfinite(mape_epsilon) or mape_epsilon <= 0:
+        raise ValueError("mape_epsilon must be positive and finite")
 
     errors = predicted_values - actual_values
     denominator = np.maximum(np.abs(actual_values), mape_epsilon)
@@ -200,7 +204,7 @@ def per_class_detection_metrics(
 def rolling_backtest(
     frame: pd.DataFrame,
     *,
-    forecaster_factory: Callable[[], OnlineTrafficForecaster],
+    forecaster_factory: Callable[[], TrafficForecaster],
     initial_window: int,
     horizon: int,
     step: int | None = None,
@@ -208,22 +212,27 @@ def rolling_backtest(
     timestamp_column: str = "date_time",
     target_column: str = "traffic_volume",
 ) -> pd.DataFrame:
-    """Evaluate repeated train-then-forecast windows without future-data leakage."""
+    """Evaluate fresh models on strictly later, timestamp-aligned observations.
 
-    if initial_window < 2 or horizon < 1:
-        raise ValueError("initial_window must be at least 2 and horizon must be positive")
+    Inputs are sorted but must have unique, non-missing timestamps on the exact
+    ``frequency`` grid and finite non-negative targets. Gaps and duplicates must
+    be resolved explicitly by the caller. Forecasts must include ``timestamp``
+    and ``predicted_traffic_volume`` columns covering exactly the test timestamps;
+    their row order is irrelevant. The factory must return a fresh model per fold.
+    """
+
+    positive_integer(initial_window, "initial_window", minimum=2)
+    positive_integer(horizon, "horizon")
     step = horizon if step is None else step
-    if step < 1:
-        raise ValueError("step must be positive")
-    required = {timestamp_column, target_column}
-    if missing := required.difference(frame.columns):
-        raise ValueError(f"Missing columns: {sorted(missing)}")
-
-    ordered = frame.loc[:, [timestamp_column, target_column]].copy()
-    ordered[timestamp_column] = pd.to_datetime(ordered[timestamp_column])
-    ordered = ordered.dropna().sort_values(timestamp_column).reset_index(drop=True)
+    positive_integer(step, "step")
+    offset = positive_frequency(frequency)
+    ordered = validated_traffic_frame(frame, timestamp_column, target_column)
     if initial_window + horizon > len(ordered):
         raise ValueError("The frame is too short for the requested initial window and horizon")
+    timestamps = pd.DatetimeIndex(ordered[timestamp_column])
+    expected = pd.date_range(timestamps[0], periods=len(timestamps), freq=offset)
+    if not timestamps.equals(expected):
+        raise ValueError("Timestamps must form an uninterrupted grid at the requested frequency")
 
     folds: list[pd.DataFrame] = []
     final_split = len(ordered) - horizon
@@ -232,7 +241,7 @@ def rolling_backtest(
         train = ordered.iloc[:split]
         test = ordered.iloc[split : split + horizon]
         model = forecaster_factory().fit_frame(
-            train,
+            train.copy(),
             timestamp_column=timestamp_column,
             target_column=target_column,
         )
@@ -241,13 +250,18 @@ def rolling_backtest(
             periods=len(test),
             frequency=frequency,
         )
+        forecast = validated_traffic_frame(forecast, "timestamp", "predicted_traffic_volume")
+        test_timestamps = pd.DatetimeIndex(test[timestamp_column])
+        if not pd.DatetimeIndex(forecast["timestamp"]).equals(test_timestamps):
+            raise ValueError("Forecast timestamps must match the test window exactly")
+        aligned = forecast.set_index("timestamp").reindex(test_timestamps)
         folds.append(
             pd.DataFrame(
                 {
                     "fold": fold_number,
                     "timestamp": test[timestamp_column].to_numpy(),
                     "actual": test[target_column].astype(float).to_numpy(),
-                    "predicted": forecast["predicted_traffic_volume"].to_numpy(),
+                    "predicted": aligned["predicted_traffic_volume"].to_numpy(),
                 }
             )
         )
