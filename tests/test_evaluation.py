@@ -120,6 +120,13 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(list(metrics), ["D00", "D10", "D20", "D40"])
         self.assertEqual(len(metrics), 4)
         self.assertEqual(dict(metrics), metrics.metrics_by_label)
+        self.assertEqual(metrics, metrics.metrics_by_label)
+        self.assertEqual(metrics.metrics_by_label, metrics)
+        self.assertEqual(metrics, per_class_detection_metrics(
+            expected, predictions, confidence_threshold=0.5
+        ))
+        self.assertNotEqual(metrics, {})
+        self.assertEqual(per_class_detection_metrics([], []), {})
 
     def test_regression_metrics(self) -> None:
         metrics = regression_metrics([100, 200], [90, 220])

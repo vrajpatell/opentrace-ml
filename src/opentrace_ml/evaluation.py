@@ -42,7 +42,7 @@ class DetectionMetrics:
         return asdict(self)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class PerClassDetectionMetrics(Mapping[str, DetectionMetrics]):
     """Deterministic per-label detection metrics at one evaluation threshold.
 
