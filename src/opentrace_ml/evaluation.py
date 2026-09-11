@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import asdict, dataclass
 
 import numpy as np
@@ -42,12 +42,13 @@ class DetectionMetrics:
         return asdict(self)
 
 
-@dataclass(frozen=True, slots=True)
-class PerClassDetectionMetrics:
+@dataclass(frozen=True, slots=True, eq=False)
+class PerClassDetectionMetrics(Mapping[str, DetectionMetrics]):
     """Deterministic per-label detection metrics at one evaluation threshold.
 
     ``metrics_by_label`` includes labels present in ground truth and labels with
     at least one prediction at or above the configured confidence threshold.
+    Standard mapping operations such as iteration and ``items()`` are supported.
     Call :meth:`as_dict` to create a JSON-serializable report.
     """
 
@@ -57,6 +58,12 @@ class PerClassDetectionMetrics:
         """Return metrics for one detection label."""
 
         return self.metrics_by_label[label]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(sorted(self.metrics_by_label))
+
+    def __len__(self) -> int:
+        return len(self.metrics_by_label)
 
     def as_dict(self) -> dict[str, dict[str, float | int]]:
         """Return an ordered, JSON-serializable per-label report."""

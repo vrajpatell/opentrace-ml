@@ -85,6 +85,49 @@ class EvaluationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             per_class_detection_metrics([], [], confidence_threshold=1.1)
 
+    def test_per_class_detection_metrics_multi_frame_and_classes(self) -> None:
+        expected = [
+            Detection("D00", 1.0, BoundingBox(0, 0, 10, 10), 0, "f1"),
+            Detection("D10", 1.0, BoundingBox(20, 20, 30, 30), 0, "f1"),
+            Detection("D20", 1.0, BoundingBox(0, 0, 10, 10), 1, "f2"),
+        ]
+        predictions = [
+            Detection("D00", 0.9, BoundingBox(1, 1, 9, 9), 0, "f1"),
+            Detection("D10", 0.3, BoundingBox(20, 20, 30, 30), 0, "f1"),
+            Detection("D40", 0.8, BoundingBox(50, 50, 60, 60), 0, "f1"),
+        ]
+
+        metrics = per_class_detection_metrics(
+            expected, predictions, confidence_threshold=0.5
+        )
+
+        self.assertEqual(metrics["D00"].true_positives, 1)
+        self.assertEqual(metrics["D00"].f1, 1.0)
+
+        self.assertEqual(metrics["D10"].true_positives, 0)
+        self.assertEqual(metrics["D10"].false_negatives, 1)
+
+        self.assertEqual(metrics["D20"].true_positives, 0)
+        self.assertEqual(metrics["D20"].false_negatives, 1)
+
+        self.assertEqual(metrics["D40"].true_positives, 0)
+        self.assertEqual(metrics["D40"].false_positives, 1)
+
+        serialized = {k: v.as_dict() for k, v in metrics.items()}
+        self.assertIn("D00", serialized)
+        self.assertEqual(serialized["D00"]["true_positives"], 1)
+        self.assertEqual(serialized, metrics.as_dict())
+        self.assertEqual(list(metrics), ["D00", "D10", "D20", "D40"])
+        self.assertEqual(len(metrics), 4)
+        self.assertEqual(dict(metrics), metrics.metrics_by_label)
+        self.assertEqual(metrics, metrics.metrics_by_label)
+        self.assertEqual(metrics.metrics_by_label, metrics)
+        self.assertEqual(metrics, per_class_detection_metrics(
+            expected, predictions, confidence_threshold=0.5
+        ))
+        self.assertNotEqual(metrics, {})
+        self.assertEqual(per_class_detection_metrics([], []), {})
+
     def test_regression_metrics(self) -> None:
         metrics = regression_metrics([100, 200], [90, 220])
         self.assertEqual(metrics.mae, 15)
