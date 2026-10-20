@@ -22,6 +22,7 @@ the stack.
 | Computer vision | Parse RDD2022-style Pascal VOC annotations and adapt callable detectors |
 | Evaluation | Calculate per-class detection metrics and rolling traffic-forecast backtests |
 | Forecasting | Incremental linear learning, a CPU neural network, persistence, and seasonal baselines; export linear models for native Go inference |
+| Forecast ensembles | Dynamic-programming model selection by forecast lead, with parallel CPU calibration and refitting |
 | Geospatial | Interpolate detections onto GPS traces and export GeoJSON |
 | Private traces | Enforce consent, pseudonymize trip IDs, and clean GPX samples |
 | Map matching | Validate ordered matched and unmatched observations through an engine-independent contract |
@@ -170,6 +171,21 @@ located = geolocate_detections(detections, trace)
 geojson = detections_to_geojson(located)
 ```
 
+## Dynamic-programming ensembles and parallel training
+
+`HorizonEnsembleForecaster` selects neural or baseline models for each forecast
+lead using chronological validation windows. A dynamic-programming optimizer
+balances validation MAE against a penalty for switching models. Independent
+candidates can be evaluated and refit in parallel CPU processes with `n_jobs`.
+
+```bash
+python examples/parallel_horizon_ensemble.py --n-jobs 2
+```
+
+The offline example reports calibration scores separately from an untouched
+future test window. See the [ensemble guide](docs/HORIZON_ENSEMBLE.md) for the
+API, recurrence, reproducibility, and evaluation constraints.
+
 ## Train in Python, forecast in Go
 
 The Python traffic forecaster can export a data-only model snapshot. Go loads
@@ -290,6 +306,7 @@ source for editing OpenStreetMap. OpenTrace does not upload them to OSM.
 | `forecasting.py` | Incremental traffic-volume forecasting |
 | `neural.py` | Batch CPU neural forecasting with training-only scaling |
 | `baselines.py` | Persistence and seasonal-naive reference forecasts |
+| `ensemble.py` | Dynamic-programming horizon selection and parallel candidate training |
 | `portable_forecasting.py` | Validated JSON model snapshots and portable inference |
 | `geo.py` | GPS interpolation, distances, and GeoJSON |
 | `gpx.py` | Timestamped GPX loading and normalization |
