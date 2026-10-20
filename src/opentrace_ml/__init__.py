@@ -1,6 +1,7 @@
 """OpenTrace ML public API."""
 
 from .baselines import SeasonalNaiveForecaster
+from .ensemble import HorizonEnsembleForecaster, ModelSelectionPath, optimal_model_path
 from .evaluation import (
     DetectionMetrics,
     PerClassDetectionMetrics,
@@ -44,10 +45,12 @@ __all__ = [
     "Detector",
     "GeoDetection",
     "GeoPoint",
+    "HorizonEnsembleForecaster",
     "MapMatchObservation",
     "MapMatchResult",
     "MapMatchSegment",
     "MapMatcher",
+    "ModelSelectionPath",
     "NeuralTrafficForecaster",
     "OnlineTrafficForecaster",
     "PerClassDetectionMetrics",
@@ -66,6 +69,7 @@ __all__ = [
     "detections_to_geojson",
     "geolocate_detections",
     "load_gpx_points",
+    "optimal_model_path",
     "per_class_detection_metrics",
     "prepare_trace",
     "pseudonymize_trip_id",
