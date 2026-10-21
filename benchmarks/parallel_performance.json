@@ -1,0 +1,63 @@
+{
+  "source": "Original synthetic traffic; no real-world speedup guarantee",
+  "samples": 1440,
+  "models": 4,
+  "repeats": 3,
+  "cpu_count": 9,
+  "model_config": {
+    "lags": 24,
+    "hidden_layer_sizes": [
+      32,
+      16
+    ],
+    "max_iter": 200,
+    "seeds": [
+      42,
+      43,
+      44,
+      45
+    ]
+  },
+  "ensemble_config": {
+    "horizon": 24,
+    "validation_folds": 3,
+    "switch_penalty": 10
+  },
+  "versions": {
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.8.0",
+    "joblib": "1.5.3"
+  },
+  "timings": {
+    "1": {
+      "seconds": [
+        2.3223087449999866,
+        2.387623371000018,
+        2.685311267999964
+      ],
+      "first_seconds": 2.3223087449999866,
+      "median_warm_seconds": 2.536467319499991,
+      "training_warning_counts": [
+        13,
+        13,
+        13
+      ]
+    },
+    "2": {
+      "seconds": [
+        2.7491504339999437,
+        1.4341428569999835,
+        1.4861328700000058
+      ],
+      "first_seconds": 2.7491504339999437,
+      "median_warm_seconds": 1.4601378634999946,
+      "training_warning_counts": [
+        13,
+        13,
+        13
+      ]
+    }
+  },
+  "serial_parallel_predictions": "allclose rtol=1e-6 atol=1e-7; identical paths"
+}

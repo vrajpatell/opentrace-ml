@@ -1,0 +1,11 @@
+[
+ {"kind":"route","field":"distance_m","nonfinite":"nan"},
+ {"kind":"route","field":"shortest_distance_m","nonfinite":"infinity"},
+ {"kind":"route","field":"route_id","value":""},
+ {"kind":"route","field":"potholes","value":0.5},
+ {"kind":"route","field":"other_hazards","value":true},
+ {"kind":"detection","field":"timestamp_seconds","nonfinite":"nan"},
+ {"kind":"detection","field":"timestamp_seconds","nonfinite":"infinity"},
+ {"kind":"geodetection","field":"latitude","value":95},
+ {"kind":"geodetection","field":"longitude","value":200}
+]

@@ -1,0 +1,99 @@
+{
+  "format": "opentrace.horizon-ensemble.v1",
+  "last_timestamp": "2026-01-01T23:00:00Z",
+  "frequency_seconds": 3600,
+  "selected_models": [
+    "neural",
+    "season",
+    "neural"
+  ],
+  "candidates": {
+    "neural": {
+      "format": "opentrace.traffic-mlp.v1",
+      "feature_layout": "lags_oldest_first_wall_clock_calendar5_seconds",
+      "lags": 2,
+      "mean": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        10.0,
+        10.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "weights": [
+        [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.25
+          ],
+          [
+            0.75
+          ]
+        ]
+      ],
+      "biases": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "target_mean": 0.0,
+      "target_scale": 10.0,
+      "history": [
+        10.0,
+        20.0
+      ],
+      "last_timestamp": "2026-01-01T23:00:00Z",
+      "frequency_seconds": 3600
+    },
+    "season": {
+      "format": "opentrace.seasonal.v1",
+      "season": [
+        10,
+        20
+      ]
+    }
+  }
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from numbers import Real
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,7 +18,8 @@ class BoundingBox:
 
     def __post_init__(self) -> None:
         if not all(
-            math.isfinite(value) for value in (self.xmin, self.ymin, self.xmax, self.ymax)
+            isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value)
+            for value in (self.xmin, self.ymin, self.xmax, self.ymax)
         ):
             raise ValueError("Bounding box coordinates must be finite")
         if self.xmax < self.xmin or self.ymax < self.ymin:
@@ -35,12 +37,25 @@ class Detection:
     frame_id: str | None = None
 
     def __post_init__(self) -> None:
-        if not self.label:
+        if not isinstance(self.label, str) or not self.label:
             raise ValueError("Detection label cannot be empty")
-        if not 0.0 <= self.confidence <= 1.0:
+        if (
+            isinstance(self.confidence, bool)
+            or not isinstance(self.confidence, Real)
+            or not 0.0 <= self.confidence <= 1.0
+        ):
             raise ValueError("Detection confidence must be between 0 and 1")
-        if self.timestamp_seconds < 0:
-            raise ValueError("Detection timestamp cannot be negative")
+        if (
+            isinstance(self.timestamp_seconds, bool)
+            or not isinstance(self.timestamp_seconds, Real)
+            or not math.isfinite(self.timestamp_seconds)
+            or self.timestamp_seconds < 0
+        ):
+            raise ValueError("Detection timestamp must be finite and non-negative")
+        if not isinstance(self.bbox, BoundingBox):
+            raise TypeError("Detection requires a BoundingBox")
+        if self.frame_id is not None and not isinstance(self.frame_id, str):
+            raise TypeError("frame_id must be a string or None")
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,7 +68,7 @@ class GeoPoint:
 
     def __post_init__(self) -> None:
         if not all(
-            math.isfinite(value)
+            isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value)
             for value in (self.latitude, self.longitude, self.timestamp_seconds)
         ):
             raise ValueError("GPS coordinates and timestamp must be finite")
@@ -72,3 +87,8 @@ class GeoDetection:
     detection: Detection
     latitude: float
     longitude: float
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.detection, Detection):
+            raise TypeError("GeoDetection requires a Detection")
+        GeoPoint(self.latitude, self.longitude, self.detection.timestamp_seconds)

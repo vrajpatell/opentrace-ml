@@ -7,12 +7,12 @@
 - [x] Reject temporal leakage from duplicate timestamps and misaligned test predictions.
 - [x] Provide synthetic, public UCI, and local CSV benchmark entry points.
 - [x] Report errors by forecast lead and record training convergence warnings.
-- [ ] Validate across multiple public-data seasons and independently held-out windows.
+- [x] Validate across predeclared public-data seasons and independently held-out windows.
 - [ ] Add calibrated forecast intervals evaluated by lead time.
-- [ ] Design a versioned neural inference format and Python/Go conformance fixtures.
+- [x] Ship versioned neural and ensemble inference formats with Python/Go conformance fixtures.
 
 See [Neural forecasting](NEURAL_FORECASTING.md). This is an experimental Python
-baseline; it does not add neural inference to the Go core or release pretrained weights.
+baseline; fixed-offset neural inference is available in Go. No pretrained weights are released.
 
 ## 0.2.3 — Portable traffic inference
 
@@ -48,9 +48,9 @@ baseline; it does not add neural inference to the Go core or release pretrained 
 - [x] Add detection metrics and rolling traffic backtesting.
 - [x] Add per-class detection metrics at a configurable IoU threshold.
 - [x] Add runnable current-stage mini-projects.
-- [ ] Add an Apache-2.0-compatible reference detection model.
+- [x] Add an optional RTMDet adapter and framework-free CPU smoke test (no weights bundled).
 - Add train/evaluate commands for an RDD2022 subset.
-- Add small cached OSM extracts for integration tests without hitting public services.
+- [x] Add an original synthetic OSM-format fixture for offline graph integration tests.
 - [x] Add GPX parsing and timestamp normalization.
 
 ## 0.2.1 — Privacy-safe trace preparation
@@ -59,7 +59,7 @@ baseline; it does not add neural inference to the Go core or release pretrained 
 - [x] Replace raw trip identifiers with secret-keyed HMAC pseudonyms.
 - [x] Remove duplicate samples and implausible speed jumps deterministically.
 - [x] Emit aggregate cleaning counts without logging coordinates.
-- [ ] Segment traces around long recording gaps.
+- [x] Segment Python traces around long recording gaps.
 - [x] Define key-rotation and retention guidance for deployments.
 
 ## 0.3 — Route intelligence
@@ -68,8 +68,7 @@ baseline; it does not add neural inference to the Go core or release pretrained 
 - Connect forecasts to road-network edges.
 - Map-match GPS traces with Valhalla.
 - Cluster repeated unmatched traces as candidate missing roads.
-- Require a minimum contributing-trip threshold and human review before
-  exporting aggregated road-layer changes.
+- [x] Require distinct consenting-trip thresholds and explicit human review before exporting aggregate candidate cells.
 
 ## 0.4 — Streaming and web integration
 

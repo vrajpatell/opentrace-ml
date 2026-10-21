@@ -141,7 +141,7 @@ separate chronological validation window and retain an untouched final test set.
 Useful next contributions include multi-season public-data reports with dataset
 checksums, online-model scale/convergence diagnosis, calibrated intervals scored
 by lead time, and a versioned data-only neural export with cross-language fixtures.
-The current Go core has no neural inference implementation. No datasets or
+The Go core now supports bounded, fixed-offset neural and ensemble inference; see [portable neural contracts](PORTABLE_NEURAL.md). No datasets or
 trained weights are committed by this phase.
 
 Start with [multi-window evaluation (#20)](https://github.com/vrajpatell/opentrace-ml/issues/20),

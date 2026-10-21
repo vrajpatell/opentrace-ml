@@ -6,7 +6,7 @@ import warnings
 from collections.abc import Callable, Mapping
 from copy import deepcopy
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from itertools import pairwise
 from numbers import Real
 from typing import TypeVar
@@ -213,6 +213,43 @@ class HorizonEnsembleForecaster:
         if self._state is None:
             raise RuntimeError("Fit the ensemble before requesting its selection report")
         return deepcopy(self._state.report)
+
+    def export_model(self):
+        """Export selected built-in models for fixed-offset Python/Go inference."""
+        from .baselines import SeasonalNaiveForecaster
+        from .forecasting import OnlineTrafficForecaster
+        from .neural import NeuralTrafficForecaster
+        from .portable_ensemble import ENSEMBLE_MODEL_FORMAT, PortableEnsembleModel
+
+        state = self._state
+        if state is None:
+            raise RuntimeError("Fit the ensemble before exporting")
+        zone = state.last_timestamp.tz
+        if zone is None or not (isinstance(zone, timezone) or str(zone) == "UTC"):
+            raise ValueError("Ensemble export requires UTC or a fixed datetime.timezone")
+        nanos = positive_frequency(state.frequency).nanos
+        if nanos % 1_000_000_000:
+            raise ValueError("Ensemble export requires integer-second cadence")
+        components = {}
+        for name, model in state.models.items():
+            if type(model) in (NeuralTrafficForecaster, OnlineTrafficForecaster):
+                components[name] = model.export_model().to_dict()
+            elif type(model) is SeasonalNaiveForecaster:
+                components[name] = {
+                    "format": "opentrace.seasonal.v1",
+                    "season": model._season.tolist(),
+                }
+            else:
+                raise ValueError(f"Candidate {name!r} has no supported data-only export")
+        return PortableEnsembleModel.from_dict(
+            {
+                "format": ENSEMBLE_MODEL_FORMAT,
+                "last_timestamp": state.last_timestamp.isoformat(),
+                "frequency_seconds": nanos // 1_000_000_000,
+                "selected_models": list(state.path),
+                "candidates": components,
+            }
+        )
 
     def fit_frame(
         self,

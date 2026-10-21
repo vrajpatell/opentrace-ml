@@ -4,8 +4,7 @@
 including the CPU neural network, online linear model, and seasonal baselines.
 It learns which candidate to use at each **lead** (one hour ahead, two hours
 ahead, etc.) from chronological validation windows. Independent candidates can
-be calibrated and refit in parallel CPU processes. This is a Python training
-feature; it does not change the Go model format or implement neural export.
+be calibrated and refit in parallel CPU processes. Training runs in Python. Fixed-offset data-only exports run in Python and Go; see [portable neural contracts](PORTABLE_NEURAL.md).
 
 ## Quick start
 
@@ -156,5 +155,4 @@ a fresh ensemble for each outer fold. Each outer training prefix must also
 contain sufficient inner calibration history, and the outer horizon cannot
 exceed the ensemble's calibrated horizon. Baselines may outperform the ensemble;
 candidate quality, representativeness of calibration windows, and regime changes
-matter. This feature does not resolve the separate online-model underfitting
-issue or provide prediction intervals.
+matter. The online model now uses normalized updates; see [release readiness](RELEASE_READINESS.md). Forecasts remain point estimates without prediction intervals.

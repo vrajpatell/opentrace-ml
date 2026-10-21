@@ -59,3 +59,16 @@ Apache-2.0 licence for this repository must not be assumed to cover weights.
 Download scripts and adapters may refer to external sources, but dataset files
 must not be committed to this repository. Contributors should add source,
 licence, version, attribution, and checksum information for every new dataset.
+
+## Original release fixtures (2026-10-21)
+
+- `tests/fixtures/original-road.osm`: hand-authored fictional OSM-format road,
+  OpenTrace ML contributors, Apache-2.0. No OSM data was copied.
+  SHA-256: `a160fadc374e2a880b53b4958bf557419fd835114da04cd61d6535b053867fda`.
+- `go/testdata/conformance/v1/neural_model.json` and `ensemble_model.json`:
+  original tiny mathematical fixtures, Apache-2.0; not third-party trained weights.
+- `benchmarks/release_evaluation.json`: aggregate results derived from Hogue
+  (2019), UCI Metro Interstate Traffic Volume, CC BY 4.0,
+  https://doi.org/10.24432/C5X60B. The raw dataset is not redistributed.
+- Optional RTMDet adapter: Apache-2.0 source; users must verify the provenance
+  and licenses of their chosen MMDetection configuration, checkpoint, and data.
