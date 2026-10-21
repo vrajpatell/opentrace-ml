@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -87,17 +87,17 @@ class NeuralTrafficForecaster:
         Failed validation leaves any previously fitted model intact.
         """
 
-        ordered = regular_traffic_frame(
-            frame, timestamp_column, target_column, self.frequency
-        )
+        ordered = regular_traffic_frame(frame, timestamp_column, target_column, self.frequency)
         if len(ordered) < self.lags + 2:
             raise ValueError(f"Need at least {self.lags + 2} observations to train the network")
         values = ordered[target_column].to_numpy(dtype=float)
         timestamps = pd.DatetimeIndex(ordered[timestamp_column])
-        features = np.asarray([
-            self._features(timestamps[i], values[i - self.lags : i].tolist())
-            for i in range(self.lags, len(values))
-        ])
+        features = np.asarray(
+            [
+                self._features(timestamps[i], values[i - self.lags : i].tolist())
+                for i in range(self.lags, len(values))
+            ]
+        )
         # L-BFGS uses all training examples; no random validation split or hidden
         # early-stopping holdout can mix future observations into preprocessing.
         model = TransformedTargetRegressor(
@@ -149,3 +149,38 @@ class NeuralTrafficForecaster:
             predictions.append(value)
             history.append(value)
         return pd.DataFrame({"timestamp": timestamps, "predicted_traffic_volume": predictions})
+
+    def export_model(self):
+        """Export bounded data-only MLP state for Python/Go fixed-offset inference.
+
+        Train on UTC or an explicit fixed offset. Naive and DST-zone histories
+        must be converted explicitly before fitting; export never guesses a zone.
+        """
+        from .portable_neural import PortableNeuralModel
+
+        if self._model is None or self._last_timestamp is None:
+            raise RuntimeError("Fit the forecaster before exporting")
+        zone = self._last_timestamp.tz
+        if zone is None or not (isinstance(zone, timezone) or str(zone) == "UTC"):
+            raise ValueError("Neural export requires training in UTC or a fixed datetime.timezone")
+        try:
+            nanos = positive_frequency(self.frequency).nanos
+        except ValueError as error:
+            raise ValueError("Neural export requires a fixed integer-second cadence") from error
+        if nanos % 1_000_000_000:
+            raise ValueError("Neural export requires a fixed integer-second cadence")
+        scaler = self._model.regressor_.named_steps["standardscaler"]
+        network = self._model.regressor_.named_steps["mlpregressor"]
+        target = self._model.transformer_
+        return PortableNeuralModel(
+            lags=int(self.lags),
+            mean=scaler.mean_.tolist(),
+            scale=scaler.scale_.tolist(),
+            weights=[matrix.tolist() for matrix in network.coefs_],
+            biases=[bias.tolist() for bias in network.intercepts_],
+            target_mean=float(target.mean_[0]),
+            target_scale=float(target.scale_[0]),
+            history=self._history,
+            last_timestamp=self._last_timestamp.isoformat(),
+            frequency_seconds=nanos // 1_000_000_000,
+        )

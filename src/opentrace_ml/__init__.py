@@ -1,6 +1,8 @@
 """OpenTrace ML public API."""
 
+from .aggregation import AggregateRoadCandidate, aggregate_unmatched_traces
 from .baselines import SeasonalNaiveForecaster
+from .detectors import RTMDetDetector
 from .ensemble import HorizonEnsembleForecaster, ModelSelectionPath, optimal_model_path
 from .evaluation import (
     DetectionMetrics,
@@ -25,18 +27,23 @@ from .map_matching import (
 )
 from .models import BoundingBox, Detection, GeoDetection, GeoPoint
 from .neural import NeuralTrafficForecaster
+from .portable_ensemble import PortableEnsembleModel
 from .portable_forecasting import PortableTrafficModel
+from .portable_neural import PortableNeuralModel
 from .protocols import CallableDetector, Detector, RawDetection, TrafficForecaster
 from .routing import RouteSignals, score_route
 from .trace import (
     PreparedTrace,
+    PreparedTraceSegments,
     TraceCleaningConfig,
     TraceCleaningReport,
+    TraceSegmentationReport,
     prepare_trace,
     pseudonymize_trip_id,
 )
 
 __all__ = [
+    "AggregateRoadCandidate",
     "BoundingBox",
     "CallableDetector",
     "CallableMapMatcher",
@@ -54,8 +61,12 @@ __all__ = [
     "NeuralTrafficForecaster",
     "OnlineTrafficForecaster",
     "PerClassDetectionMetrics",
+    "PortableEnsembleModel",
+    "PortableNeuralModel",
     "PortableTrafficModel",
     "PreparedTrace",
+    "PreparedTraceSegments",
+    "RTMDetDetector",
     "RawDetection",
     "RawMapMatch",
     "RegressionMetrics",
@@ -63,7 +74,9 @@ __all__ = [
     "SeasonalNaiveForecaster",
     "TraceCleaningConfig",
     "TraceCleaningReport",
+    "TraceSegmentationReport",
     "TrafficForecaster",
+    "aggregate_unmatched_traces",
     "bounding_box_iou",
     "detection_metrics",
     "detections_to_geojson",
@@ -79,4 +92,4 @@ __all__ = [
     "score_route",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0a1"

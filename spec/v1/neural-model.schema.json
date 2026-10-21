@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vrajpatell/opentrace-ml/spec/v1/neural-model.schema.json",
+  "title": "OpenTrace fixed-offset neural inference v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "feature_layout",
+    "lags",
+    "mean",
+    "scale",
+    "weights",
+    "biases",
+    "history",
+    "target_mean",
+    "target_scale",
+    "last_timestamp",
+    "frequency_seconds"
+  ],
+  "properties": {
+    "format": {
+      "const": "opentrace.traffic-mlp.v1"
+    },
+    "feature_layout": {
+      "const": "lags_oldest_first_wall_clock_calendar5_seconds"
+    },
+    "lags": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4096
+    },
+    "mean": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1,
+      "maxItems": 4101
+    },
+    "scale": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "minItems": 1,
+      "maxItems": 4101
+    },
+    "weights": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 4101,
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "biases": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 4096,
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "history": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "target_mean": {
+      "type": "number"
+    },
+    "target_scale": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "last_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "frequency_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31536000
+    }
+  },
+  "description": "Relational dimensions, finite float64 values, 1,000,000-parameter and 16 MiB limits, duplicate keys, and timestamp semantics are additionally enforced by loaders."
+}

@@ -1,0 +1,18 @@
+{
+  "protocol_version": 1,
+  "declared_before_scoring": "2026-10-21",
+  "samples": 336,
+  "initial_window": 240,
+  "horizon": 24,
+  "seed": 42,
+  "neural": {"lags":24,"hidden_layer_sizes":[32,16],"max_iter":500,"alpha":0.01},
+  "online": {"lags":24,"step_size":0.2},
+  "ensemble": {"validation_folds":3,"switch_penalty":10,"n_jobs":1},
+  "windows": [
+    {"name":"calibration_winter_2017","role":"calibration","start":"2017-01-01","end":"2017-02-01"},
+    {"name":"test_winter_2018","role":"test","start":"2018-01-01","end":"2018-02-01"},
+    {"name":"test_spring_2018","role":"test","start":"2018-04-01","end":"2018-05-01"},
+    {"name":"test_summer_2018","role":"test","start":"2018-07-01","end":"2018-08-01"},
+    {"name":"test_autumn_2018","role":"test","start":"2018-09-01","end":"2018-10-01"}
+  ]
+}

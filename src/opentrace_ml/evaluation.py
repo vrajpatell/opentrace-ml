@@ -95,12 +95,19 @@ def regression_metrics(
     if not math.isfinite(mape_epsilon) or mape_epsilon <= 0:
         raise ValueError("mape_epsilon must be positive and finite")
 
-    errors = predicted_values - actual_values
-    denominator = np.maximum(np.abs(actual_values), mape_epsilon)
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        errors = np.abs(predicted_values - actual_values)
+        denominator = np.maximum(np.abs(actual_values), mape_epsilon)
+        maximum = float(np.max(errors))
+        mae = float(np.sum(errors / len(errors)))
+        rmse = maximum * float(np.sqrt(np.mean((errors / maximum) ** 2))) if maximum else 0.0
+        mape = float(np.mean(errors / denominator) * 100)
+    if not all(math.isfinite(value) for value in (mae, rmse, mape)):
+        raise ValueError("Regression metrics exceed the supported numeric range")
     return RegressionMetrics(
-        mae=float(np.mean(np.abs(errors))),
-        rmse=float(np.sqrt(np.mean(np.square(errors)))),
-        mape_percent=float(np.mean(np.abs(errors) / denominator) * 100),
+        mae=mae,
+        rmse=rmse,
+        mape_percent=mape,
         samples=len(actual_values),
     )
 
@@ -114,6 +121,8 @@ def bounding_box_iou(left: BoundingBox, right: BoundingBox) -> float:
     left_area = (left.xmax - left.xmin) * (left.ymax - left.ymin)
     right_area = (right.xmax - right.xmin) * (right.ymax - right.ymin)
     union = left_area + right_area - intersection
+    if not all(math.isfinite(v) for v in (intersection, left_area, right_area, union)):
+        raise ValueError("Bounding box area exceeds the supported numeric range")
     return intersection / union if union > 0 else 0.0
 
 

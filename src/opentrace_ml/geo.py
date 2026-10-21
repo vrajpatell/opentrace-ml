@@ -18,8 +18,8 @@ def interpolate_position(points: Sequence[GeoPoint], timestamp_seconds: float) -
 
     if not points:
         raise ValueError("At least one GPS point is required")
-    if timestamp_seconds < 0:
-        raise ValueError("Timestamp cannot be negative")
+    if not math.isfinite(timestamp_seconds) or timestamp_seconds < 0:
+        raise ValueError("Timestamp must be finite and non-negative")
 
     ordered = list(points)
     if any(
@@ -70,7 +70,7 @@ def haversine_distance_m(left: GeoPoint, right: GeoPoint) -> float:
     dlat = lat2 - lat1
     dlon = math.radians(right.longitude - left.longitude)
     value = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
-    return 2 * radius_m * math.asin(math.sqrt(value))
+    return 2 * radius_m * math.asin(math.sqrt(min(1.0, max(0.0, value))))
 
 
 def route_distance_m(points: Sequence[GeoPoint]) -> float:
@@ -82,6 +82,8 @@ def route_distance_m(points: Sequence[GeoPoint]) -> float:
 def route_to_geojson(points: Sequence[GeoPoint], **properties: object) -> dict[str, object]:
     """Convert a route to a GeoJSON Feature with correct lon/lat coordinate order."""
 
+    if len(points) < 2:
+        raise ValueError("A route LineString requires at least two points")
     return {
         "type": "Feature",
         "properties": properties,

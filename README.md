@@ -6,7 +6,7 @@
 [![Go](https://img.shields.io/badge/go-1.26%2B-00ADD8.svg)](go/go.mod)
 [![GitHub Discussions](https://img.shields.io/badge/discussions-join-8250df)](https://github.com/vrajpatell/opentrace-ml/discussions)
 
-OpenTrace ML is a pre-alpha Python and Go project for building road-intelligence
+OpenTrace ML is an alpha Python and Go project for building road-intelligence
 applications from computer-vision detections, incremental traffic forecasts, and
 privacy-aware map signals.
 
@@ -19,9 +19,9 @@ the stack.
 
 | Area | Available capability |
 |---|---|
-| Computer vision | Parse RDD2022-style Pascal VOC annotations and adapt callable detectors |
+| Computer vision | Parse RDD2022-style Pascal VOC annotations; callable and optional RTMDet adapters |
 | Evaluation | Calculate per-class detection metrics and rolling traffic-forecast backtests |
-| Forecasting | Incremental linear learning, a CPU neural network, persistence, and seasonal baselines; export linear models for native Go inference |
+| Forecasting | Incremental linear learning, a CPU neural network, persistence, and seasonal baselines; export linear, neural, and built-in ensemble models for native Go inference |
 | Forecast ensembles | Dynamic-programming model selection by forecast lead, with parallel CPU calibration and refitting |
 | Geospatial | Interpolate detections onto GPS traces and export GeoJSON |
 | Private traces | Enforce consent, pseudonymize trip IDs, and clean GPX samples |
@@ -32,6 +32,16 @@ the stack.
 OpenTrace ML does **not** yet ship a trained detector, live API, routing service,
 web application, third-party dataset, or production map-matcher integration.
 These are staged in the [roadmap](docs/ROADMAP.md).
+
+
+## Release 0.2.0a1
+
+This alpha includes stricter input validation, repaired online updates,
+trace gap segmentation, reviewed aggregate export gates, and data-only neural
+and ensemble inference in Python and Go. See [release readiness](docs/RELEASE_READINESS.md),
+[portable model contracts](docs/PORTABLE_NEURAL.md), and [the changelog](CHANGELOG.md).
+The release includes predeclared multi-season UCI evaluation results and measured
+parallel execution costs; model accuracy remains workload-dependent.
 
 ## Architecture
 
@@ -324,7 +334,7 @@ the design boundaries and planned integrations.
 
 ## Project status
 
-Version `0.1.0` is pre-alpha. APIs may change while the first reproducible
+Version `0.2.0a1` is an alpha release. APIs may change while reproducible
 computer-vision, forecasting, and route-intelligence integrations are developed.
 
 ## License

@@ -136,10 +136,10 @@ applications should choose domain-appropriate relative and absolute tolerances.
 
 ## Pre-release and module tags
 
-The core is merged into `main`. During portable inference review, test that branch:
+The core is merged into `main`. Use the reviewed main branch until a module release is tagged:
 
 ```bash
-go get github.com/vrajpatell/opentrace-ml/go@feat/portable-traffic-inference
+go get github.com/vrajpatell/opentrace-ml/go@main
 ```
 
 `@main` selects the reviewed main branch head. A release for this nested

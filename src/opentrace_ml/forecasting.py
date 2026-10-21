@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections import deque
 from collections.abc import Iterable
+from copy import deepcopy
 from datetime import datetime
 
 import numpy as np
@@ -23,17 +24,20 @@ class OnlineTrafficForecaster:
     traffic observation without retraining from scratch.
     """
 
-    def __init__(self, lags: int = 6, random_state: int = 42) -> None:
+    def __init__(self, lags: int = 6, random_state: int = 42, *, step_size: float = 0.2) -> None:
         positive_integer(lags, "lags")
+        positive_integer(random_state, "random_state", minimum=0)
+        if isinstance(step_size, bool) or not math.isfinite(step_size) or not 0 < step_size <= 1:
+            raise ValueError("step_size must be finite and in (0, 1]")
+        self.step_size = step_size
         self.lags = lags
         self._history: deque[float] = deque(maxlen=lags)
         self._scaler = StandardScaler()
         self._model = SGDRegressor(
-            loss="huber",
-            penalty="l2",
-            alpha=0.0001,
-            learning_rate="adaptive",
-            eta0=0.01,
+            loss="squared_error",
+            penalty=None,
+            learning_rate="constant",
+            eta0=step_size,
             random_state=random_state,
         )
         self._fitted = False
@@ -81,9 +85,26 @@ class OnlineTrafficForecaster:
         self._require_later_timestamp(parsed)
         if len(self._history) == self.lags:
             features = self._features(parsed, self._history)
-            self._scaler.partial_fit(features)
-            transformed = self._scaler.transform(features)
-            self._model.partial_fit(transformed, np.asarray([volume]))
+            scaler, model = deepcopy(self._scaler), deepcopy(self._model)
+            scaler.partial_fit(features)
+            if self._fitted:
+                # Preserve the raw-space function as the online scaler changes.
+                model.intercept_ += np.dot(
+                    model.coef_, (scaler.mean_ - self._scaler.mean_) / self._scaler.scale_
+                )
+                model.coef_ *= scaler.scale_ / self._scaler.scale_
+            transformed = scaler.transform(features)
+            norm = float(np.dot(transformed[0], transformed[0]))
+            if not np.isfinite(norm):
+                raise ValueError("Traffic features exceed the supported numeric range")
+            # Normalized least-mean-squares step: count-sized residuals are not
+            # clipped to Huber's default 0.1, and large features cannot inflate
+            # the effective update step. No future observations set this scale.
+            model.eta0 = self.step_size / (1.0 + norm)
+            model.partial_fit(transformed, np.asarray([volume]))
+            if not np.isfinite(model.coef_).all() or not np.isfinite(model.intercept_).all():
+                raise ValueError("Traffic parameters exceed the supported numeric range")
+            self._scaler, self._model = scaler, model
             self._fitted = True
         self._history.append(volume)
         self._last_timestamp = parsed
@@ -116,6 +137,8 @@ class OnlineTrafficForecaster:
         self._require_later_timestamp(parsed)
         features = self._features(parsed, self._history)
         prediction = float(self._model.predict(self._scaler.transform(features))[0])
+        if not math.isfinite(prediction):
+            raise ValueError("The online model produced a non-finite prediction")
         return max(0.0, prediction)
 
     def export_model(self) -> PortableTrafficModel:
@@ -159,7 +182,10 @@ class OnlineTrafficForecaster:
         predictions: list[float] = []
         for timestamp in timestamps:
             features = self._features(timestamp, history)
-            value = max(0.0, float(self._model.predict(self._scaler.transform(features))[0]))
+            value = float(self._model.predict(self._scaler.transform(features))[0])
+            if not math.isfinite(value):
+                raise ValueError("The online model produced a non-finite forecast")
+            value = max(0.0, value)
             predictions.append(value)
             history.append(value)
         return pd.DataFrame({"timestamp": timestamps, "predicted_traffic_volume": predictions})
