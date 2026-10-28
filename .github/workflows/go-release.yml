@@ -1,0 +1,40 @@
+name: Verify published Go module
+
+on:
+  push:
+    tags: ['go/v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.x'
+          cache: false
+      - name: Fetch the tagged module from the public proxy and run a consumer
+        env:
+          MODULE_TAG: ${{ github.ref_name }}
+          GOMODCACHE: ${{ runner.temp }}/opentrace-public-module-cache
+          GOPROXY: https://proxy.golang.org
+          GOWORK: 'off'
+        run: |
+          test "$GITHUB_REF_TYPE" = tag
+          [[ "$MODULE_TAG" =~ ^go/v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]
+          version="${MODULE_TAG#go/}"
+          consumer="$RUNNER_TEMP/opentrace-go-consumer"
+          mkdir "$consumer"
+          cp go/examples/basic/main.go "$consumer/main.go"
+          cd "$consumer"
+          go mod init example.com/opentrace-consumer
+          go get "github.com/vrajpatell/opentrace-ml/go@$version"
+          test "$(go list -m -f '{{.Version}}' github.com/vrajpatell/opentrace-ml/go)" = "$version"
+          go mod verify
+          go run .

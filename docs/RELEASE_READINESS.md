@@ -156,10 +156,12 @@ serial remains the default. Training is single-host CPU work, not GPU/DDP.
 
 CI verifies all supported Python versions, native Go race/conformance/fuzz tests,
 actual trained Python-to-Go exports, an offline optional graph integration, and
-wheel/sdist metadata plus installation from the built wheel. Portable neural and
+wheel/sdist metadata plus independent clean installations of both distributions.
+These consumer environments resolve declared runtime dependencies without system
+site-packages or an editable checkout. Portable neural and
 ensemble formats have separate bounds and contracts in PORTABLE_NEURAL.md.
 
-Release procedure: merge only after CI passes, build `python -m build`, check
-`python -m twine check dist/*`, install the wheel in a fresh environment, and
-create release tags only when ready to publish. Nested Go module tags must use
-`go/v...`. No PyPI upload or release tag is created by the hardening changes.
+The [release procedure](RELEASING.md) specifies build checks, isolated consumer
+smokes, separate Python/Go tags, PyPI trusted publishing, and verification from
+the public registries. A successful CI build alone does not mean a package has
+been uploaded. Alpha limitations above apply to both published distributions.
