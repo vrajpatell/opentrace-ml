@@ -64,6 +64,17 @@ review; OpenTrace never treats one unmatched trace as a missing road.
 
 OpenTrace ML supports Python 3.10, 3.11, and 3.12.
 
+For the published Python alpha, select the prerelease explicitly:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install 'opentrace-ml==0.2.0a1'
+```
+
+On Windows PowerShell, use `.venv\Scripts\Activate.ps1` to activate the environment.
+For development and the repository examples, use a source checkout:
+
 ```bash
 git clone https://github.com/vrajpatell/opentrace-ml.git
 cd opentrace-ml
@@ -81,12 +92,19 @@ pip install -e '.[data,geo]'
 The native Go module supports Go 1.26 and 1.27:
 
 ```bash
-go get github.com/vrajpatell/opentrace-ml/go
+go get github.com/vrajpatell/opentrace-ml/go@v0.2.0-alpha.1
 ```
 
 See the [Go quick start](go/README.md) and
 [performance contracts](docs/GO_PERFORMANCE.md). Python remains the training and
 data-science surface; Go is the dependency-light execution surface.
+
+**Alpha limitations:** evaluation covers one traffic station; the standalone
+neural fits reached their iteration cap, and the ensemble had higher MAE than
+the standalone neural model in all four final seasonal windows. APIs may change.
+See the [measured results and limitations](docs/RELEASE_READINESS.md) before
+using forecasts in an application. [Release instructions](docs/RELEASING.md)
+describe how the Python and Go distributions are built and verified.
 
 ## Five-minute offline demo
 

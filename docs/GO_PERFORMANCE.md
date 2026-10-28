@@ -136,12 +136,13 @@ applications should choose domain-appropriate relative and absolute tolerances.
 
 ## Pre-release and module tags
 
-The core is merged into `main`. Use the reviewed main branch until a module release is tagged:
+Install the versioned alpha explicitly:
 
 ```bash
-go get github.com/vrajpatell/opentrace-ml/go@main
+go get github.com/vrajpatell/opentrace-ml/go@v0.2.0-alpha.1
 ```
 
-`@main` selects the reviewed main branch head. A release for this nested
-Go module must use a tag such as `go/v0.1.0-alpha.1`; the Python/root tag alone
-does not release the nested module. No Go release is created by this PR.
+`@main` selects the development branch instead. This nested Go module uses
+the repository tag `go/v0.2.0-alpha.1`; the Python/root tag alone does not
+release it. See [the release procedure](RELEASING.md) for clean consumer
+verification and the rule against moving published tags.
